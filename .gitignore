@@ -1,0 +1,27 @@
+# Ignore les fichiers générés par la compilation
+*.o
+*.out
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore les fichiers générés par l'éditeur
+.vscode/
+.idea/
+*.suo
+*.user
+*.sdf
+*.db
+
+# Ignore les fichiers de sauvegarde
+*~
+*.bak
+
+# Ignore les fichiers de compilation
+CMakeFiles/
+CMakeCache.txt
+CMakeScripts/
+CMakeLists.txt.user
+build/
+bin/
