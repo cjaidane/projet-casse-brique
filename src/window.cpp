@@ -1,6 +1,6 @@
 #include "../include/window.h"
 
-Window::Window() : fenetre(nullptr), renderer(nullptr){
+Window::Window() : fenetre(nullptr), renderer(nullptr) {
 }
 
 Window::~Window() {
@@ -13,15 +13,13 @@ int Window::init(const char* title, int width, int height) {
         return -1;
     }
 
-    fenetre = SDL_CreateWindow(title,
-                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                               width, height,
-                               SDL_WINDOW_SHOWN);
+    fenetre = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
     if (!fenetre) {
         SDL_Log("Erreur lors de la création de la fenêtre : %s", SDL_GetError());
         SDL_Quit();
         return -1;
     }
+
     // Création du renderer
     renderer = SDL_CreateRenderer(fenetre, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer) {
@@ -35,11 +33,11 @@ int Window::init(const char* title, int width, int height) {
 }
 
 void Window::quit() {
+    if (renderer != nullptr) {
+        SDL_DestroyRenderer(renderer);
+    }
     if (fenetre != nullptr) {
         SDL_DestroyWindow(fenetre);
-    }
-    if(renderer != nullptr){
-        SDL_DestroyRenderer(renderer);
     }
     SDL_Quit();
 }

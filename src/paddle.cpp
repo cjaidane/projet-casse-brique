@@ -40,3 +40,7 @@ void Paddle::moveTo(int x) {
         paddleRect.x = window_width - paddleRect.w;
     }
 }
+// Dans paddle.cpp
+SDL_Rect Paddle::getRect() const {
+    return paddleRect; // Assurez-vous que paddleRect est correctement défini et mis à jour
+}

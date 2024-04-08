@@ -11,6 +11,9 @@ public:
     void moveLeft();
     void moveRight();
     void moveTo(int x);
+    // Dans paddle.h
+    SDL_Rect getRect() const;
+
 
 private:
     SDL_Renderer* renderer;
@@ -19,6 +22,5 @@ private:
     int window_height;
     int paddle_speed;
 };
-
 
 #endif // PADDLE_H
