@@ -1,18 +1,23 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
+#ifndef WINDOW_H
+#define WINDOW_H
+
+
+
 class Window {
 public:
-	Window();
-	Window(Window &&) = default;
-	Window(const Window &) = default;
-	Window &operator=(Window &&) = default;
-	Window &operator=(const Window &) = default;
-	~Window();
+    Window();
+    ~Window();
 
-	int init();
-	int quit();
+    int init(const char* title, int width, int height);
+    void quit();
+	SDL_Renderer* getRenderer() const;
+
 private:
-	SDL_Window* fenetre;
+    SDL_Window* fenetre;
+	SDL_Renderer* renderer;
 };
 
+#endif // WINDOW_H

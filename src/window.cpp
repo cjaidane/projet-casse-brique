@@ -1,27 +1,32 @@
 #include "../include/window.h"
-#include <stdio.h>
 
-Window::Window() {
-    this->fenetre = SDL_CreateWindow("Clement le bg",
-                                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                                          640, 480,
-                                          SDL_WINDOW_SHOWN);
+Window::Window() : fenetre(nullptr), renderer(nullptr){
 }
 
 Window::~Window() {
+    quit();
 }
 
-int Window::init() {
-    
-    // Initialisation de SDL
+int Window::init(const char* title, int width, int height) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_Log("Erreur lors de l'initialisation de SDL : %s", SDL_GetError());
         return -1;
     }
 
-    // Création de la fenêtre
-    if (!this->fenetre) {
+    fenetre = SDL_CreateWindow(title,
+                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                               width, height,
+                               SDL_WINDOW_SHOWN);
+    if (!fenetre) {
         SDL_Log("Erreur lors de la création de la fenêtre : %s", SDL_GetError());
+        SDL_Quit();
+        return -1;
+    }
+    // Création du renderer
+    renderer = SDL_CreateRenderer(fenetre, -1, SDL_RENDERER_ACCELERATED);
+    if (!renderer) {
+        SDL_Log("Erreur lors de la création du renderer : %s", SDL_GetError());
+        SDL_DestroyWindow(fenetre);
         SDL_Quit();
         return -1;
     }
@@ -29,8 +34,16 @@ int Window::init() {
     return 0;
 }
 
-int Window::quit() {
-    SDL_DestroyWindow(this->fenetre);
+void Window::quit() {
+    if (fenetre != nullptr) {
+        SDL_DestroyWindow(fenetre);
+    }
+    if(renderer != nullptr){
+        SDL_DestroyRenderer(renderer);
+    }
     SDL_Quit();
-    return 0;
+}
+
+SDL_Renderer* Window::getRenderer() const {
+    return renderer;
 }
