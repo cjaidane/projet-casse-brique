@@ -16,8 +16,24 @@ add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME}
                 PRIVATE
                 #Le nom du projet
-                src/${PROJECT_NAME}.cpp
+                src/main.cpp
                 #SDL2
-                src/utils/SDL.cpp
+                src/game.cpp
+                src/window.cpp
+                src/paddle.cpp
 )
 
+target_include_directories(${PROJECT_NAME}
+                                PRIVATE
+                                ${SDL2_INCLUDE_DIRS}
+                                include
+                                include/game
+                                include/window
+                                include/paddle
+                
+)
+
+target_link_libraries(${PROJECT_NAME}
+                        PRIVATE
+                        ${SDL2_LIBRARIES}
+)
