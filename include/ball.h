@@ -6,10 +6,12 @@
 class Ball {
 public:
     Ball(int x, int y, int radius);
-    void update(bool gameStarted, int windowWidth, int windowHeight, SDL_Rect paddleRect);
+    void update(bool& gameStarted, int windowWidth, int windowHeight, SDL_Rect paddleRect);
     void render(SDL_Renderer* renderer);
     void launch();
-    void setPosition(int x, int y);
+    //void setPosition(int x, int y);
+    bool checkCollision(SDL_Rect paddleRect) const;
+    void reset(int paddleX, int paddleY, int paddleWidth);
 
 private:
     SDL_Point center;
@@ -18,3 +20,4 @@ private:
 };
 
 #endif // BALL_H
+
