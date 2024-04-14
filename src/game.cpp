@@ -1,18 +1,26 @@
 #include "../include/game.h"
 
 void Game::initBricks() {
-    const int brickRows = 5, brickColumns = 10;
-    const int brickWidth = 64, brickHeight = 20, brickPadding = 5;
-    const int startX = (640 - (brickColumns * (brickWidth + brickPadding))) / 2;
-    const int startY = 50;
-    for (int row = 0; row < brickRows; ++row) {
-        for (int col = 0; col < brickColumns; ++col) {
-            int x = startX + col * (brickWidth + brickPadding);
-            int y = startY + row * (brickHeight + brickPadding);
-            bricks.emplace_back(x, y, brickWidth, brickHeight); // Pas besoin de résistance ici car elle n'est pas utilisée
+    const int windowWidth = 640;  // Largeur de la fenêtre
+    const int startY = 50;        // Début des briques à partir du haut de la fenêtre
+    const int brickHeight = 20;   // Hauteur de chaque brique
+    const int padding = 5;        // Espace entre les briques
+    const int rows = 4;           // Nombre de lignes de briques
+
+    // Calculer le nombre de colonnes et la largeur des briques pour qu'elles remplissent toute la largeur
+    const int cols = (windowWidth + padding) / (50 + padding);  // Approximation pour ajuster au mieux
+    const int brickWidth = (windowWidth - (cols + 1) * padding) / cols;  // Largeur ajustée pour remplir l'espace
+
+    for (int i = 0; i < rows; ++i) {
+        int resistance = rows - i; // Plus de résistance pour les lignes supérieures
+        for (int j = 0; j < cols; ++j) {
+            int startX = j * (brickWidth + padding) + padding;  // Calcul de la position X de chaque brique
+            bricks.emplace_back(startX, startY + i * (brickHeight + padding), 
+                                brickWidth, brickHeight, resistance);
         }
     }
 }
+
 Game::Game() : jeuTourne(false), paddle(nullptr), ball(nullptr) {
     // Initialiser Window et SDL avant d'initialiser Paddle
     win.init("Casse Brique", 640, 480);

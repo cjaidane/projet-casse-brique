@@ -5,7 +5,7 @@
 
 class Brick {
 public:
-    Brick(int x, int y, int w, int h);
+    Brick(int x, int y, int w, int h, int resistance);
     void render(SDL_Renderer* renderer) const;
     bool checkCollision(const SDL_Rect& ballRect);
     bool isActive() const;
@@ -13,7 +13,9 @@ public:
 
 private:
     SDL_Rect rect;
+    int resistance; // Ajout de la résistance
     bool active;
+    float initialResistance ; // Résistance initiale des briques
 };
 
 #endif // BRICK_H
