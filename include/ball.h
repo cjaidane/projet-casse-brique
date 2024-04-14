@@ -12,12 +12,18 @@ public:
     //void setPosition(int x, int y);
     bool checkCollision(SDL_Rect paddleRect) const;
     void reset(int paddleX, int paddleY, int paddleWidth);
+    // Pour inverser la vitesse verticale de la balle
+    void reverseYVelocity();
+    SDL_Rect getRect() const;
 
 private:
     SDL_Point center;
     int radius;
     int velX, velY;
+
+
 };
+
 
 #endif // BALL_H
 

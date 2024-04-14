@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #### PROJET ####
 
@@ -22,7 +24,7 @@ target_sources(${PROJECT_NAME}
                 src/window.cpp
                 src/paddle.cpp
                 src/ball.cpp
-                
+                src/brick.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -33,7 +35,8 @@ target_include_directories(${PROJECT_NAME}
                                 include/window
                                 include/paddle
                                 include/ball
-                                
+                                include/brick
+                               
                 
 )
 

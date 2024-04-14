@@ -64,7 +64,16 @@ void Ball::launch() {
 //     center.y = y;
 // }
 
+void Ball::reverseYVelocity() {
+    velY = -velY;  // Inverser la vitesse verticale
+}
+
+
 void Ball::reset(int paddleX, int paddleY, int paddleWidth) {
     center.x = paddleX + paddleWidth / 2;
     center.y = paddleY - radius - 1;
+}
+
+SDL_Rect Ball::getRect() const {
+    return {center.x - radius, center.y - radius, 2 * radius, 2 * radius};
 }
