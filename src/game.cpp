@@ -109,6 +109,10 @@ void Game::run() {
         ball->render(renderer); // Dessine la balle
         //permet de mettre à jour la position de la balle quand le paddle est en mouvement
         ball->update(gameStarted, 640, 480, paddle->getRect()); 
+        if (ball->getVies() == 0) {
+            jeuTourne = false;
+             
+        }
         //Permet la collision entre la balle et les briques
         ballRect=ball-> getRect();
     

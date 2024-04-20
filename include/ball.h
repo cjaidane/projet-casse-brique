@@ -18,11 +18,15 @@ public:
     void reverseYVelocity();
     SDL_Rect getRect() const;
 
+    //Getter vies
+    int getVies();
+
 private:
     
     SDL_Point center;
     int radius;
     int velX, velY;
+    int vies;
 };
 
 

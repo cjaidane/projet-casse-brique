@@ -1,4 +1,5 @@
 #include "../include/ball.h"
+#include <iostream>
 
 /*
     Constructeur de la classe Ball.
@@ -9,7 +10,7 @@
     @param y Position verticale initiale de la balle.
     @param radius Rayon de la balle.
 */
-Ball::Ball(int x, int y, int radius) : radius(radius), velX(0), velY(0) {
+Ball::Ball(int x, int y, int radius) : radius(radius), velX(0), velY(0), vies(3) {
     center.x = x;
     center.y = y;
 }
@@ -48,6 +49,7 @@ void Ball::update(bool& gameStarted, int windowWidth, int windowHeight, SDL_Rect
         gameStarted = false;
         velX = velY = 0;
        reset(paddleRect.x, paddleRect.y, paddleRect.w); 
+        vies = vies - 1;
     }
     // Vérification de collision avec le paddle
     else if (center.y + radius >= paddleRect.y &&
@@ -106,4 +108,8 @@ void Ball::reset(int paddleX, int paddleY, int paddleWidth) {
 */
 SDL_Rect Ball::getRect() const {
     return {center.x - radius, center.y - radius, 2 * radius, 2 * radius};
+}
+
+int Ball::getVies(){
+    return this->vies;
 }
