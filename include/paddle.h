@@ -7,16 +7,13 @@ class Paddle {
 public:
     Paddle(SDL_Renderer* renderer, int window_width, int window_height);
     ~Paddle();
-    void render();
+    void render(SDL_Renderer* renderer);
     void moveLeft();
     void moveRight();
     void moveTo(int x);
-    // Dans paddle.h
     SDL_Rect getRect() const;
 
-
-private:
-    SDL_Renderer* renderer;
+private:    
     SDL_Rect paddleRect;
     int window_width;
     int window_height;

@@ -20,9 +20,11 @@ private:
     Paddle* paddle; // Ajouter un pointeur vers le Paddle
     bool jeuTourne;
     bool gameStarted;
-    SDL_Renderer* renderer; // Assurez-vous d'avoir un renderer
+    SDL_Renderer* renderer; 
+    SDL_Rect ballRect;
 	Ball* ball; // Ajouter un pointeur vers la balle
-    std::vector<Brick> bricks;    
+    std::vector<Brick> bricks; 
+    //int vies;   
     void initBricks();
     void resetGame();
     
