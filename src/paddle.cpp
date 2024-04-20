@@ -1,7 +1,7 @@
 #include "../include/paddle.h"
 
 Paddle::Paddle(SDL_Renderer* renderer, int window_width, int window_height)
-    : renderer(renderer), window_width(window_width), window_height(window_height), paddle_speed(5) {
+    : window_width(window_width), window_height(window_height), paddle_speed(5) {
     paddleRect.w = 100; // Largeur de la plateforme
     paddleRect.h = 20;  // Hauteur de la plateforme
     paddleRect.x = (window_width - paddleRect.w) / 2; // Position de départ au milieu de la fenêtre
@@ -12,7 +12,7 @@ Paddle::~Paddle() {
     // Nettoyage, si nécessaire
 }
 
-void Paddle::render() {
+void Paddle::render(SDL_Renderer* renderer) {
     // Couleur de la plateforme
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Blanc
     SDL_RenderFillRect(renderer, &paddleRect);
@@ -40,7 +40,7 @@ void Paddle::moveTo(int x) {
         paddleRect.x = window_width - paddleRect.w;
     }
 }
-// Dans paddle.cpp
+
 SDL_Rect Paddle::getRect() const {
-    return paddleRect; // Assurez-vous que paddleRect est correctement défini et mis à jour
+    return paddleRect; 
 }
