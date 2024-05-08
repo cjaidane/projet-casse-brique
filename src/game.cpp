@@ -97,6 +97,9 @@ void Game::run() {
                             if (gameState == JEU_EN_COURS) {
                                 if (!gameStarted) {
                                     ball->launch();
+                                    // for(auto& ball : ball){
+                                    //     ball->launch();
+                                    // }
                                     gameStarted = true;
                                 }
                             }else if (gameState == MENU) {
