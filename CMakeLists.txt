@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0) #version minimale de cmake
-set(CMAKE_CXX_STANDARD 11) #version du c++
+set(CMAKE_CXX_STANDARD 14) #version du c++
 set(CMAKE_CXX_STANDARD_REQUIRED ON) #le c++ est obligatoire
 
 #### PROJET ####

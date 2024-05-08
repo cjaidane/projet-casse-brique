@@ -19,16 +19,16 @@ public:
 
 private:
     Window win;
-    Paddle* paddle; // Ajouter un pointeur vers le Paddle
+    std::unique_ptr<Paddle> paddle; // Ajouter un pointeur vers le Paddle
     bool jeuTourne;
     bool gameStarted;
     SDL_Renderer* renderer; 
     SDL_Rect ballRect;
-	Ball* ball; // Ajouter un pointeur vers la balle
+	std::unique_ptr<Ball> ball; // Ajouter un pointeur vers la balle
     std::vector<Brick> bricks; 
     //int vies;   
     void initBricks();
-    void resetGame();
+    //void resetGame();
     
     enum GameState  {
     	MENU,

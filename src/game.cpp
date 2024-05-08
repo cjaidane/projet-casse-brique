@@ -37,22 +37,23 @@ void Game::initBricks() {
     la fenêtre, le renderer, le paddle, la balle, et charge les briques.
 
 */
-Game::Game() : jeuTourne(false), paddle(nullptr), ball(nullptr), gameStarted(false) {
+Game::Game() : jeuTourne(false), gameStarted(false) {
     // Initialiser Window et SDL avant d'initialiser Paddle
     win.init("Casse Brique", 640, 480);
     renderer = win.getRenderer(); 
-    paddle = new Paddle(renderer, 640, 480); // Créer le Paddle
-    ball = new Ball(320, 435, 10); 
+    paddle = std::make_unique<Paddle>(renderer, 640, 480); // Créer le Paddle
+    ball = std::make_unique<Ball>(320, 435, 10); 
     initBricks();
 }
 
 /*
+
     Destructeur de la classe Game. Nettoie les ressources en supprimant
     le paddle et la balle et en fermant SDL proprement.
 */
 Game::~Game() {
-    delete paddle; // Libérer la mémoire allouée au Paddle
-    delete ball; // Libérer la mémoire allouée à la balle
+    // delete paddle; // Libérer la mémoire allouée au Paddle
+    // delete ball; // Libérer la mémoire allouée à la balle
 }
 
 /*

@@ -17,7 +17,7 @@ private:
     SDL_Rect rect;
     int resistance; // Ajout de la résistance
     bool active; // Ajout de l'état actif qui sert à savoir si elles sont encore actives
-    float initialResistance ; // Résistance initiale des briques
+    //float initialResistance ; // Résistance initiale des briques
     
 };
 

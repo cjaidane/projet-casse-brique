@@ -20,10 +20,31 @@ Brick::Brick(int x, int y, int w, int h, int resistance)
 */
 void Brick::render(SDL_Renderer* renderer) const {
     if (!active) return;
-    int colorIntensity = 255 * resistance / initialResistance; // Diminuer l'intensité de la couleur basée sur la résistance
+    int colorIntensity = 255 * resistance / 5; // Diminuer l'intensité de la couleur basée sur la résistance
     SDL_SetRenderDrawColor(renderer, 255, colorIntensity, colorIntensity, 255);
     SDL_RenderFillRect(renderer, &rect);
 }
+
+
+// /*
+//     Vérifie si la brique entre en collision avec la balle et
+//     décrémente la résistance si c'est le cas.
+
+//     @param ballRect Le rectangle représentant la balle pour vérifier la collision.
+// */
+// bool Brick::checkCollision(const SDL_Rect& ballRect) {
+//     if (!active) return false;
+//     if (ballRect.x < rect.x + rect.w && ballRect.x + ballRect.w > rect.x &&
+//         ballRect.y < rect.y + rect.h && ballRect.y + ballRect.h > rect.y) {
+//         resistance--;
+//         if (resistance <= 0) {
+//             active = false;
+//         }
+//         return true;
+//     }
+//     return false;
+// }
+
 
 
 /*
@@ -33,17 +54,24 @@ void Brick::render(SDL_Renderer* renderer) const {
     @param ballRect Le rectangle représentant la balle pour vérifier la collision.
 */
 bool Brick::checkCollision(const SDL_Rect& ballRect) {
-    if (!active) return false;
-    if (ballRect.x < rect.x + rect.w && ballRect.x + ballRect.w > rect.x &&
-        ballRect.y < rect.y + rect.h && ballRect.y + ballRect.h > rect.y) {
-        resistance--;
+    if (!active) return false;  // Si la brique n'est pas active, ne vérifiez pas les collisions.
+
+    // Créez un SDL_Rect pour la brique.
+    SDL_Rect brickRect = {rect.x, rect.y, rect.w, rect.h};
+
+    // Utilisez SDL_HasIntersection pour vérifier si la balle intersecte la brique.
+    if (SDL_HasIntersection(&ballRect, &brickRect)) {
+        resistance--;  // Décrémentez la résistance de la brique.
         if (resistance <= 0) {
-            active = false;
+            active = false;  // Désactivez la brique si sa résistance atteint zéro.
         }
-        return true;
+        return true;  // Retournez vrai car il y a eu une collision.
     }
-    return false;
+
+    return false;  // Retournez faux si aucune collision n'est détectée.
 }
+
+
 /*
     Retourne si la brique est toujours active.
     @return true si la brique est active et sa résistance est supérieure à zéro
