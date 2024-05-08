@@ -6,6 +6,8 @@
 #include "paddle.h" // Inclure l'en-tête du Paddle
 #include <memory>
 #include "brick.h"
+// #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <vector>
 
@@ -28,6 +30,13 @@ private:
     void initBricks();
     void resetGame();
     
+    enum GameState  {
+    	MENU,
+	JEU_EN_COURS,
+	GAME_OVER
+    };
+
+    GameState gameState;
 
 };
 
