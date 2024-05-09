@@ -1,4 +1,5 @@
 #include "../include/game.h"
+#include "SDL2/SDL_rect.h"
 // #include <SDL2/SDL_ttf.h>
 #include <iostream>
 
@@ -67,7 +68,7 @@ void Game::run() {
     jeuTourne = true;
     gameStarted = false;
     gameState = MENU;
-
+    bool malus_paddle=false;
 
     // A modifier pour mettre dans la classe
     SDL_Rect gameNameRect;
@@ -201,6 +202,16 @@ void Game::run() {
                         // Réagir à la collision
                         ball->reverseYVelocity();  
                     }
+                }
+
+                // AJOUT MALUS REDUCTION PADDLE
+                if(ball->getVies()==1){
+                    SDL_Rect newPaddleSize = paddle->getRect();
+                    newPaddleSize.w = 70;
+                    paddle->setRect(newPaddleSize);
+                    malus_paddle=true;
+                }else if (ball->getVies()>1){
+                    malus_paddle=false;
                 }
 
                 // Présente le contenu actuel du renderer à l'écran, mettant à jour l'affichage du jeu.

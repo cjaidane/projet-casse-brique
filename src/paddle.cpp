@@ -44,3 +44,7 @@ void Paddle::moveTo(int x) {
 SDL_Rect Paddle::getRect() const {
     return paddleRect; 
 }
+
+void Paddle::setRect(SDL_Rect rect) {
+    paddleRect.w = rect.w;
+}

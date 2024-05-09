@@ -12,6 +12,7 @@ public:
     void moveRight();
     void moveTo(int x);
     SDL_Rect getRect() const;
+    void setRect(SDL_Rect rect);
 
 private:    
     SDL_Rect paddleRect;
