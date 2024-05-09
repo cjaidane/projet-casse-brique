@@ -39,7 +39,7 @@ void Game::initBricks() {
 */
 Game::Game() : jeuTourne(false), gameStarted(false) {
     // Initialiser Window et SDL avant d'initialiser Paddle
-    win.init("Casse Brique", 640, 480);
+    win.init("Casse Brique");
     renderer = win.getRenderer(); 
     paddle = std::make_unique<Paddle>(renderer, 640, 480); // Créer le Paddle
     ball = std::make_unique<Ball>(320, 435, 10); 
@@ -67,11 +67,46 @@ void Game::run() {
     jeuTourne = true;
     gameStarted = false;
     gameState = MENU;
+
+
+    // A modifier pour mettre dans la classe
     SDL_Rect gameNameRect;
     SDL_Rect startMessageRect;
     if ( TTF_Init() < 0 ) {
         std::cout << "Error initializing SDL_ttf: " << TTF_GetError() << std::endl;
+        return;
     }
+    // Chargement de la police (par exemple, Arial avec une taille de 24 points)
+    TTF_Font* font = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 10);
+    if (font == nullptr) {
+        std::cout << "Error initializing font" << std::endl;
+        return;
+    }
+
+    // Création des surfaces de texte pour le nom du jeu et le message de démarrage
+    SDL_Color textColor = {255, 255, 255};
+    SDL_Surface* gameNameSurface = TTF_RenderText_Solid(font, "Casse Brique", {206, 98, 98});
+    SDL_Surface* startMessageSurface = TTF_RenderText_Solid(font, "Appuyez sur Espace pour commencer", {235, 234, 199});
+
+    // Conversion des surfaces de texte en textures SDL
+    SDL_Texture* gameNameTexture = SDL_CreateTextureFromSurface(renderer, gameNameSurface);
+    SDL_Texture* startMessageTexture = SDL_CreateTextureFromSurface(renderer, startMessageSurface);
+
+    // Mettre à jour la position de gameNameRect
+    // Position et taille du nom du jeu
+    gameNameRect = {0, 0, 300, 100};
+    // Position et taille du message de démarrage
+    startMessageRect = {0, 0, 500, 50};
+
+    int gameNameX = (win.getWinWidth() - gameNameRect.w) / 2;
+    int gameNameY = (win.getWinHeight() - gameNameRect.h) / 2 - 80; 
+    int startMessageX = (win.getWinWidth() - startMessageRect.w) / 2 ;
+    int startMessageY = (win.getWinHeight() - startMessageRect.h) / 2 + 40; 
+    gameNameRect.x = gameNameX;
+    gameNameRect.y = gameNameY;
+    startMessageRect.x = startMessageX;
+    startMessageRect.y = startMessageY;
+    bool showStartMessageBlink = true;
 
     SDL_Event evenement;
     while (jeuTourne) {
@@ -120,27 +155,24 @@ void Game::run() {
 
         switch (gameState) {
             case MENU:
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                SDL_RenderClear(renderer);
+                // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                // SDL_RenderClear(renderer);
 
 
-                // // Affichage des options du menu
-                // SDL_Color textColor = {0, 0, 0, 255};
-                // const char* options[] = {"Jouer", "Options", "Quitter"};
-                // for (int i = 0; i < 3; ++i) {
-                //     SDL_Surface* textSurface = TTF_RenderText_Solid(nullptr, options[i], textColor);
-                //     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-                //     SDL_FreeSurface(textSurface);
-                //     SDL_RenderCopy(renderer, textTexture, nullptr, &textRects[i]);
-                //     SDL_DestroyTexture(textTexture);
-                // }
-                //
-                // // Mettre en surbrillance l'option sélectionnée
-                // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-                // SDL_RenderDrawRect(renderer, &textRects[selectedOption]);
+                // Affichage du texte
+                SDL_RenderCopy(renderer, gameNameTexture, nullptr, &gameNameRect);
+
+                if (showStartMessageBlink) {
+                
+                    SDL_RenderCopy(renderer, startMessageTexture, nullptr, &startMessageRect);
+                }
 
                 SDL_RenderPresent(renderer);
-
+                if (SDL_GetTicks() % 1000 < 500) {
+                    showStartMessageBlink = true; // Afficher le texte
+                } else {
+                    showStartMessageBlink = false; // Masquer le texte
+                }
             break;
 
             case JEU_EN_COURS:
@@ -155,9 +187,9 @@ void Game::run() {
                 paddle->render(renderer);// Dessine le paddle
                 ball->render(renderer); // Dessine la balle
                 //permet de mettre à jour la position de la balle quand le paddle est en mouvement
-                ball->update(gameStarted, 640, 480, paddle->getRect()); 
+                ball->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect()); 
                 if (ball->getVies() == 0) {
-                    jeuTourne = false;
+                   gameState = GAME_OVER;
 
                 }
                 //Permet la collision entre la balle et les briques

@@ -8,6 +8,7 @@
 #include "brick.h"
 // #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_video.h>
 
 #include <vector>
 
