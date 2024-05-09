@@ -3,7 +3,24 @@
 // #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_keycode.h>
 #include <iostream>
+#include <random>
 
+// Fonction pour générer une valeur aléatoire dans une plage donnée
+// Recupere sur internet
+int generateRandomNumber(int min, int max) {
+    static std::random_device rd; // Initialise le générateur de nombres aléatoires
+    static std::mt19937 gen(rd()); // Utilise Mersenne Twister pour générer des nombres aléatoires
+    std::uniform_int_distribution<int> dis(min, max); // Distribution uniforme des nombres entiers dans la plage [min, max]
+    return dis(gen); // Retourne un nombre aléatoire dans la plage [min, max]
+}
+
+// Fonction pour vérifier si un bonus doit apparaître
+bool spawnBonus() {
+    int randomNumber = generateRandomNumber(0, 99);
+    int count = 20;
+    std::cout << randomNumber << std::endl;
+    return randomNumber < count;
+}
 
 /*
     Fonction qui permet de créer les bricks
@@ -39,12 +56,13 @@ void Game::initBricks() {
     la fenêtre, le renderer, le paddle, la balle, et charge les briques.
 
 */
-Game::Game() : jeuTourne(false), gameStarted(false) {
+Game::Game() : jeuTourne(false), gameStarted(false), bonus(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false){
     // Initialiser Window et SDL avant d'initialiser Paddle
     win.init("Casse Brique");
     renderer = win.getRenderer(); 
     paddle = std::make_unique<Paddle>(renderer, 640, 480); // Créer le Paddle
     ball = std::make_unique<Ball>(320, 435, 10); 
+    
     initBricks();
 }
 
@@ -57,7 +75,6 @@ Game::~Game() {
     // delete paddle; // Libérer la mémoire allouée au Paddle
     // delete ball; // Libérer la mémoire allouée à la balle
 }
-
 
 
 // Fonction pour charger une image en tant que texture
@@ -148,10 +165,7 @@ void Game::run() {
     quitMessageRect.y = (win.getWinHeight() - quitMessageRect.h) / 2 + 50;
 
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
-    SDL_Texture* heartTexture2 = loadTexture(renderer, "./assets/Heart/Heart-2-life.png");
-    SDL_Texture* heartTexture1 = loadTexture(renderer, "./assets/Heart/Heart-1-life.png");
     SDL_Rect destRectHeart;
-    SDL_Rect destRectSize;
 
     SDL_Event evenement;
     while (jeuTourne) {
@@ -206,10 +220,6 @@ void Game::run() {
 
         switch (gameState) {
             case MENU:
-                // SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                // SDL_RenderClear(renderer);
-
-
                 // Affichage du texte
                 SDL_RenderCopy(renderer, gameNameTexture, nullptr, &gameNameRect);
 
@@ -239,10 +249,7 @@ void Game::run() {
                 ball->render(renderer); // Dessine la balle
                 //permet de mettre à jour la position de la balle quand le paddle est en mouvement
                 ball->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect()); 
-                if (ball->getVies() == 0) {
-                   gameState = GAME_OVER;
 
-                }
                 //Permet la collision entre la balle et les briques
                 ballRect=ball-> getRect();
 
@@ -257,7 +264,7 @@ void Game::run() {
 
                 switch (ball->getVies()) {
                     case 0:
-
+                        gameState = GAME_OVER;
                     break;
                     case 1:
 
@@ -294,10 +301,26 @@ void Game::run() {
                     break;
                 }
 
-                // AJOUT MALUS REDUCTION PADDLE
-                // if(ball->getVies()==1){
-                // }else if (ball->getVies()>1){
-                // }
+                if (spawnBonus()) {
+                    bonus.setActive(true);
+                }
+                bonus.render(renderer);
+                bonus.update(win.getWinWidth(), win.getWinHeight(), paddle->getRect());
+
+                if (bonus.getActivationBonus()) {
+                    switch (bonus.getBonusType()) {
+                        case INCREASE_PADDLE: 
+                            newPaddleSize = paddle->getRect();
+                            newPaddleSize.w = paddle->getRect().w + 20;
+                            paddle->setRect(newPaddleSize);
+                            bonus.setActivationBonus(false);
+                        break;
+                        default:
+
+                        break;
+                    }
+                     
+                }
 
                 // Présente le contenu actuel du renderer à l'écran, mettant à jour l'affichage du jeu.
                 SDL_RenderPresent(renderer);

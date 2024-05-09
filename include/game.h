@@ -4,8 +4,9 @@
 #include "ball.h"
 #include "window.h"
 #include "paddle.h" // Inclure l'en-tête du Paddle
-#include <memory>
 #include "brick.h"
+#include "../include/bonusmalus.h"
+#include <memory>
 // #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_video.h>
@@ -39,6 +40,7 @@ private:
     };
 
     GameState gameState;
+    BonusMalus bonus;
 
 };
 
