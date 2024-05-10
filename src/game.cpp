@@ -23,6 +23,7 @@ bool spawnBonus() {
     return randomNumber < count;
 }
 
+// Fonction pour charger un niveau à partir d'un fichier
 std::vector<std::vector<int> > loadLevel(const std::string& filename) {
     std::vector<std::vector<int> > levelData;
     std::ifstream file(filename);
@@ -79,7 +80,7 @@ void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
     const int brickHeight = 20;
     const int padding = 5;
     const int startY = 50;
-
+    activeCountBrick = 0;
     int cols = levelData.empty() ? 0 : levelData[0].size();
     int brickWidth = (windowWidth - (cols + 1) * padding) / cols;
 
@@ -88,6 +89,7 @@ void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
     for (int i = 0; i < levelData.size(); ++i) {
         for (int j = 0; j < levelData[i].size(); ++j) {
             if (levelData[i][j] != 0) {
+                activeCountBrick++;
                 int startX = j * (brickWidth + padding) + padding;
                 int resistance = levelData[i][j];
                 bricks.emplace_back(startX, startY + i * (brickHeight + padding),
@@ -127,6 +129,54 @@ Game::Game() : jeuTourne(false), gameStarted(false){
     initBricks(levelData);
     initBonus();
 }
+
+/*
+    Fonction qui permet de passer au niveau suivant.
+    Construit le chemin du fichier de niveau en fonction du niveau actuel.
+    Incrémente le niveau actuel pour passer au niveau suivant.
+    @return Le chemin du fichier de niveau suivant.
+
+*/
+std::string Game::getNextLevelFilename() {
+    static int currentLevel = 1;  // Stocker le niveau actuel
+    currentLevel++;  // Incrémenter pour passer au prochain niveau
+    return "level/" + std::to_string(currentLevel) + ".txt";  // Construire le chemin du fichier de niveau
+}
+
+/*
+    Fonction qui permet de réinitialiser l'état du jeu.
+    Réinitialise la position de la balle, du paddle, et d'autres états de jeu
+    pour commencer un nouveau niveau.
+
+*/
+void Game::resetGameState() {
+    // Réinitialiser ou configurer d'autres états de jeu nécessaires
+    ball->reset(320, 435, 10); // Supposons que `reset` repositionne et remet la balle en jeu
+    paddle->render(renderer); // Supposons une méthode de réinitialisation pour le paddle
+    gameStarted = false;  // Prêt à redémarrer le jeu pour le nouveau niveau
+}
+/*
+    Fonction qui permet de mettre à jour la logique du jeu.
+    Vérifie si toutes les briques sont détruites pour passer au niveau suivant.
+    Charge le prochain niveau s'il existe, sinon déclare la fin du jeu.
+*/
+void Game::updateGameLogic() {
+    // Dessiner et mettre à jour les briques, le paddle, la balle, etc.
+    // Vérifier les collisions
+    // Vérifier si toutes les briques sont détruites
+    if (activeCountBrick == 0) {
+        std::string nextLevelFilename = getNextLevelFilename(); 
+        auto levelData = loadLevel(nextLevelFilename);
+        if (!levelData.empty()) {
+            initBricks(levelData);
+            resetGameState();  // Réinitialiser l'état du jeu pour le nouveau niveau
+        } else {
+            gameState = GAME_OVER;
+        }
+    }
+}
+
+
 
 /*
 
@@ -321,8 +371,12 @@ void Game::run() {
                     if (brick.isActive() && brick.checkCollision(ballRect)) {
                         // Réagir à la collision
                         ball->reverseYVelocity();  
+                        activeCountBrick--;
                     }
                 }
+                //Fonction qui permet de mettre à jour quand on passe au prochain niveau
+                updateGameLogic();
+                
                 SDL_Rect newPaddleSize;
 
                 switch (ball->getVies()) {

@@ -30,8 +30,12 @@ private:
 	std::unique_ptr<Ball> ball; // Ajouter un pointeur vers la balle
     std::vector<Brick> bricks; 
     //int vies;   
+    int activeCountBrick;
     void initBricks(const std::vector<std::vector<int> >& levelData);
     void initBonus();
+    std::string getNextLevelFilename();
+    void updateGameLogic();
+    void resetGameState();
     //void resetGame();
     
     enum GameState  {
