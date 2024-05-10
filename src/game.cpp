@@ -130,9 +130,10 @@ void Game::run() {
     }
 
     // Création des surfaces de texte pour le nom du jeu et le message de démarrage
-    SDL_Color textColor = {255, 255, 255};
-    SDL_Surface* gameNameSurface = TTF_RenderText_Solid(font, "Casse Brique", {206, 98, 98});
-    SDL_Surface* startMessageSurface = TTF_RenderText_Solid(font, "Appuyez sur Espace pour commencer", {235, 234, 199});
+    SDL_Color textColor ={206, 98, 98};
+    SDL_Color messageColor =  {235, 234, 199};
+    SDL_Surface* gameNameSurface = TTF_RenderText_Solid(font, "Casse Brique", textColor);
+    SDL_Surface* startMessageSurface = TTF_RenderText_Solid(font, "Appuyez sur Espace pour commencer", messageColor);
 
     // Conversion des surfaces de texte en textures SDL
     SDL_Texture* gameNameTexture = SDL_CreateTextureFromSurface(renderer, gameNameSurface);
@@ -153,16 +154,16 @@ void Game::run() {
     // Afficher le message de game over
     SDL_Surface* gameOverSurface = TTF_RenderText_Solid(font, "Game Over", textColor);
     SDL_Texture* gameOverTexture = SDL_CreateTextureFromSurface(renderer, gameOverSurface);
-    SDL_Rect gameOverRect = {0, 0, 200, 50};
+    SDL_Rect gameOverRect = {0, 0, 300, 100};
     gameOverRect.x = (win.getWinWidth() - gameOverRect.w) / 2;
-    gameOverRect.y = (win.getWinHeight() - gameOverRect.h) / 2;
+    gameOverRect.y = (win.getWinHeight() - gameOverRect.h) / 2 - 80;
     
     // Afficher un message pour quitter
-    SDL_Surface* quitMessageSurface = TTF_RenderText_Solid(font, "Appuyez sur Echap pour quitter", textColor);
+    SDL_Surface* quitMessageSurface = TTF_RenderText_Solid(font, "Appuyez sur Echap pour quitter", messageColor);
     SDL_Texture* quitMessageTexture = SDL_CreateTextureFromSurface(renderer, quitMessageSurface);
     SDL_Rect quitMessageRect = {0, 0, 400, 50};
     quitMessageRect.x = (win.getWinWidth() - quitMessageRect.w) / 2;
-    quitMessageRect.y = (win.getWinHeight() - quitMessageRect.h) / 2 + 50;
+    quitMessageRect.y = (win.getWinHeight() - quitMessageRect.h) / 2 + 40;
 
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
     SDL_Rect destRectHeart;
@@ -326,12 +327,26 @@ void Game::run() {
                 SDL_RenderPresent(renderer);
             break;
             case GAME_OVER:
-
                 SDL_RenderCopy(renderer, gameOverTexture, nullptr, &gameOverRect);
-                SDL_RenderCopy(renderer, quitMessageTexture, nullptr, &quitMessageRect);
+
+                if (showStartMessageBlink) {  // Utilisez la même logique de clignotement que le message de démarrage
+                    SDL_RenderCopy(renderer, quitMessageTexture, nullptr, &quitMessageRect);
+                }
 
                 SDL_RenderPresent(renderer);
-            break;
+
+                if (SDL_GetTicks() % 1000 < 500) {
+                    showStartMessageBlink = true; // Afficher le texte
+                } else {
+                    showStartMessageBlink = false; // Masquer le texte
+                }
+                break;
+
+                // SDL_RenderCopy(renderer, gameOverTexture, nullptr, &gameOverRect);
+                // SDL_RenderCopy(renderer, quitMessageTexture, nullptr, &quitMessageRect);
+
+                // SDL_RenderPresent(renderer);
+            //break;
         }
 
         // Introduit un léger délai de 10 millisecondes entre chaque itération de la boucle de jeu.
