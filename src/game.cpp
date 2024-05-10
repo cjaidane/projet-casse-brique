@@ -132,21 +132,39 @@ static Uint32 changeLevelCallback(Uint32 interval, void* param) {
     game->loadNextLevel();
     return 0;  // Arrêter le timer
 }
+
+static Uint32 countdownTimerCallback(Uint32 interval, void* param) {
+    Game* game = static_cast<Game*>(param);
+    if (game->countdown > 0) {
+        game->countdown--;  // Décrémentez le compteur
+        if (game->countdown == 0) {
+            game->loadNextLevel();  // Charge le niveau suivant lorsque le compteur atteint 0
+        }
+        return 1000;  // Continue à appeler le timer toutes les secondes
+    }
+    return 0;  // Arrêter le timer si le compteur est à 0
+}
+
+
 /*
     Fonction qui permet de mettre à jour la logique du jeu.
     Vérifie si toutes les briques sont détruites pour passer au niveau suivant.
     Charge le prochain niveau s'il existe, sinon déclare la fin du jeu.
 */
 void Game::updateGameLogic() {
-    // Dessiner et mettre à jour les briques, le paddle, la balle, etc.
-    // Vérifier les collisions
-    // Vérifier si toutes les briques sont détruites
     if (activeCountBrick == 0) {
-        gameState=CHANGEMENT_NIVEAU;
-        SDL_AddTimer(3000,changeLevelCallback, this);
+        countdown = 3;  // Commence le compteur à 3 secondes
+        gameState = CHANGEMENT_NIVEAU;
+        SDL_AddTimer(1000, countdownTimerCallback, this);  // Démarre le timer pour décompter chaque seconde
     }
 }
 
+/*
+    Fonction qui permet de charger le niveau suivant.
+    Charge le prochain niveau à partir d'un fichier texte.
+    Si tous les niveaux sont atteints, déclare la fin du jeu.
+
+*/
 void Game::loadNextLevel() {
     niveauActuel++;
     std::string nextLevelFilename = "level/"+std::to_string(niveauActuel)+".txt";
@@ -158,10 +176,15 @@ void Game::loadNextLevel() {
         resetGameState();
         gameState = JEU_EN_COURS;
     } else {
-        gameState = GAME_OVER;
+        gameState = TOUS_NIVEAUX_ATTEINTS;
     }
 }
 
+/*
+    Fonction qui permet d'afficher le niveau actuel à l'écran.
+    Utilise la bibliothèque SDL_ttf pour afficher du texte à l'écran.
+
+*/
 void Game::displayLevel() {
     TTF_Font* font = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
     if (!font) {
@@ -184,6 +207,29 @@ void Game::displayLevel() {
     TTF_CloseFont(font);
 }
 
+
+/*
+    Fonction qui permet d'afficher le compte à rebours pour le prochain niveau.
+    Utilise la bibliothèque SDL_ttf pour afficher du texte à l'écran.
+*/
+void Game::displayNextLevelCountdown() {
+    if (gameState != CHANGEMENT_NIVEAU) return; // Assurez-vous que le jeu est dans le bon état
+
+    TTF_Font* font = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
+    SDL_Color textColor = {255, 255, 255}; // Blanc
+    std::string countdownText = "Starting in: " + std::to_string(countdown);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, countdownText.c_str(), textColor);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    int textWidth, textHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &textWidth, &textHeight);
+    SDL_Rect renderQuad = { (win.getWinWidth() - textWidth) / 2, (win.getWinHeight() - textHeight) / 2, textWidth, textHeight };
+
+    SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
+}
 
 
 /*
@@ -293,6 +339,14 @@ void Game::run() {
     nextLevelReact.x = (win.getWinWidth() - nextLevelReact.w) / 2;
     nextLevelReact.y = (win.getWinHeight() - nextLevelReact.h) / 2 - 80;
 
+    // Afficher messages niveaux atteint
+    SDL_Surface* allLevelsCompleteSurface = TTF_RenderText_Solid(font, "Tous les niveaux atteints!", textColor);
+    SDL_Texture* allLevelsCompleteTexture = SDL_CreateTextureFromSurface(renderer, allLevelsCompleteSurface);
+    SDL_Rect allLevelsCompleteRect = {0, 0, 300, 300};
+    allLevelsCompleteRect.x = (win.getWinWidth() - allLevelsCompleteRect.w) / 2;
+    allLevelsCompleteRect.y = (win.getWinHeight() - allLevelsCompleteRect.h) / 2 - 80;
+   
+    
 
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
     SDL_Rect destRectHeart;
@@ -383,15 +437,20 @@ void Game::run() {
                 //Permet la collision entre la balle et les briques
                 ballRect=ball-> getRect();
 
-                // Boucle sur chaque brique pour vérifier si une collision avec la balle a lieu.
+                // Vérifiez la collision de la balle avec chaque brique active
                 for (auto& brick : bricks) {
-                    if (brick.isActive() && brick.checkCollision(ballRect)) {
-                        // Réagir à la collision
-                        ball->reverseYVelocity();  
-                        //brick.isActive();
-                        activeCountBrick--;
+                    if (brick.isActive()) {
+                        SDL_Rect ballRect = ball->getRect();
+                        if (brick.checkCollision(ballRect)) {
+                            ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                            if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                                activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
+                            }
+                        }
                     }
                 }
+              
+
                 //Fonction qui permet de mettre à jour quand on passe au prochain niveau
                 updateGameLogic();
                 //loadNextLevel();
@@ -507,6 +566,13 @@ void Game::run() {
 
             case CHANGEMENT_NIVEAU:
                 SDL_RenderCopy(renderer, nextLeveltexture, nullptr, &nextLevelReact);
+                displayNextLevelCountdown(); // Cette fonction sera appelée chaque seconde grâce au timer
+                SDL_RenderPresent(renderer);
+                break;
+
+
+            case TOUS_NIVEAUX_ATTEINTS:
+                SDL_RenderCopy(renderer, allLevelsCompleteTexture, nullptr, &allLevelsCompleteRect);
                 SDL_RenderPresent(renderer);
                 break;
         }
