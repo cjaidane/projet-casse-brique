@@ -31,6 +31,7 @@ private:
     std::vector<Brick> bricks; 
     //int vies;   
     void initBricks();
+    void initBonus();
     //void resetGame();
     
     enum GameState  {
@@ -40,7 +41,7 @@ private:
     };
 
     GameState gameState;
-    BonusMalus bonus;
+    std::vector<BonusMalus> bonus;
 
 };
 

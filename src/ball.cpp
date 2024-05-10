@@ -113,3 +113,19 @@ SDL_Rect Ball::getRect() const {
 int Ball::getVies(){
     return this->vies;
 }
+
+
+void Ball::setVel(int velX, int velY){
+    this->velX = velX;
+    this->velY = velY;
+}
+
+
+int Ball::getVelX(){
+    return this->velX;
+}
+
+
+int Ball::getVelY(){
+    return this->velY;
+}

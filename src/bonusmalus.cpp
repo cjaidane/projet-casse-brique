@@ -1,7 +1,7 @@
 #include "../include/bonusmalus.h"
 #include <iostream>
 
-BonusMalus::BonusMalus(int x, bool bonus, int radius, Bonus bon, Malus mal, bool act) : radius(radius), velX(0), velY(5), bonus(bonus), active(true), activationBonus(false){
+BonusMalus::BonusMalus(int x, bool bonus, int radius, Bonus bon, Malus mal, bool act) : radius(radius), velX(0), velY(5), bonus(bonus), active(true), activationBonus(false), used(false){
     center.x = x;
     center.y = 0;
     this->bon = bon;
@@ -34,18 +34,20 @@ void BonusMalus::update(int windowWidth, int windowHeight, SDL_Rect paddleRect) 
     // }
 
     // Met à jour la position de la balle en fonction de sa vitesse
-    center.x += velX;
-    center.y += velY;
+    if (active) {
 
-    if (center.y + radius >= paddleRect.y &&
-        center.y + radius <= paddleRect.y + paddleRect.h &&
-        center.x >= paddleRect.x &&
-        center.x <= paddleRect.x + paddleRect.w && 
-        active) {
-        //Appliquer bonus ou malus
-        std::cout << "Bonus" << std::endl;
-        active = false;
-        activationBonus = true;
+        center.x += velX;
+        center.y += velY;
+
+        if (center.y + radius >= paddleRect.y &&
+            center.y + radius <= paddleRect.y + paddleRect.h &&
+            center.x >= paddleRect.x &&
+            center.x <= paddleRect.x + paddleRect.w) {
+            //Appliquer bonus ou malus
+            // std::cout << "Bonus" << std::endl;
+            active = false;
+            activationBonus = true;
+        }
     }
 }
 
@@ -68,3 +70,11 @@ Malus BonusMalus::getMalusType(){
 void BonusMalus::setActive(bool act){
     this->active = act;
 }
+
+bool BonusMalus::getUsed(){
+    return this->used;
+}
+
+void BonusMalus::setUsed(bool us){
+    this->used = us;
+}   

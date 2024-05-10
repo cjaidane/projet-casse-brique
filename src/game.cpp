@@ -16,9 +16,9 @@ int generateRandomNumber(int min, int max) {
 
 // Fonction pour vérifier si un bonus doit apparaître
 bool spawnBonus() {
-    int randomNumber = generateRandomNumber(0, 99);
-    int count = 20;
-    std::cout << randomNumber << std::endl;
+    int randomNumber = generateRandomNumber(0, 10000);
+    int count = 5;
+    // std::cout << randomNumber << std::endl;
     return randomNumber < count;
 }
 
@@ -50,20 +50,32 @@ void Game::initBricks() {
     }
 }
 
+void Game::initBonus(){
+    
+    //Malus
+    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
+    //Bonus
+    bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
+}
+
 /*
     Fonction qui permet de lancer le jeu.
     Constructeur de la classe Game. Initialise les composants du jeu tels que
     la fenêtre, le renderer, le paddle, la balle, et charge les briques.
 
 */
-Game::Game() : jeuTourne(false), gameStarted(false), bonus(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false){
+Game::Game() : jeuTourne(false), gameStarted(false){
     // Initialiser Window et SDL avant d'initialiser Paddle
     win.init("Casse Brique");
     renderer = win.getRenderer(); 
     paddle = std::make_unique<Paddle>(renderer, 640, 480); // Créer le Paddle
     ball = std::make_unique<Ball>(320, 435, 10); 
-    
+    // bonus(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false)
+
     initBricks();
+    initBonus();
 }
 
 /*
@@ -302,27 +314,49 @@ void Game::run() {
                     break;
                 }
 
-                if (spawnBonus()) {
-                    bonus.setActive(true);
-                }
-                bonus.render(renderer);
-                bonus.update(win.getWinWidth(), win.getWinHeight(), paddle->getRect());
-
-                if (bonus.getActivationBonus()) {
-                    switch (bonus.getBonusType()) {
-                        case INCREASE_PADDLE: 
-                            newPaddleSize = paddle->getRect();
-                            newPaddleSize.w = paddle->getRect().w + 20;
-                            paddle->setRect(newPaddleSize);
-                            bonus.setActivationBonus(false);
-                        break;
-                        default:
-
-                        break;
+                for (auto& bonus : this->bonus) {
+                
+                    if (gameStarted && !bonus.getUsed() && spawnBonus()) {
+                        bonus.setActive(true);
+                        bonus.setUsed(true);
+                        // std::cout << "Un bonus pop" << std::endl; 
                     }
-                     
-                }
+                    bonus.render(renderer);
+                    bonus.update(win.getWinWidth(), win.getWinHeight(), paddle->getRect());
 
+                    if (bonus.getActivationBonus()) {
+                        switch (bonus.getBonusType()) {
+                            case INCREASE_PADDLE: 
+                                newPaddleSize = paddle->getRect();
+                                newPaddleSize.w = paddle->getRect().w + 20;
+                                paddle->setRect(newPaddleSize);
+                                break;
+                            case DECREASE_SPEED_BALL:
+                                ball->setVel(ball->getVelX() + 1, ball->getVelY() - 1);
+                                break;
+                            default:
+                                //Prendre en compte si MALUS et autre
+                                break;
+                        }
+
+                        switch (bonus.getMalusType()) {
+                            case DECREASE_PADDLE: 
+                                newPaddleSize = paddle->getRect();
+                                newPaddleSize.w = paddle->getRect().w - 20;
+                                paddle->setRect(newPaddleSize);
+                                break;
+                            case INCREASE_SPEED_BALL:
+                                ball->setVel(ball->getVelX() - 1, ball->getVelY() + 1);
+                                break;
+                            default:
+                                //Prendre en compte si BONUS et autre
+                                break;
+                        }
+
+                        bonus.setActivationBonus(false);
+                    }
+
+                }
                 // Présente le contenu actuel du renderer à l'écran, mettant à jour l'affichage du jeu.
                 SDL_RenderPresent(renderer);
             break;
