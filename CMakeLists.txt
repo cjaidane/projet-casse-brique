@@ -15,7 +15,7 @@ find_package(PkgConfig REQUIRED) #pour chercher SDL2_ttf
 pkg_search_module(SDL2TTF REQUIRED SDL2_ttf) #pour trouver SDL2_ttf
 pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image) #pour trouver SDL2_ttf
 
-link_directories(${SDL2_LIBRARY_DIRS}) #pour ajouter les librairies de SDL2
+link_directories(${SDL2_LIBRARY_DIRS} ${SDL2TTF_LIBRARY_DIRS}) #pour ajouter les librairies de SDL2
 
 add_executable(${PROJECT_NAME})
 
