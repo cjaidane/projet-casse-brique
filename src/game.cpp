@@ -4,6 +4,7 @@
 #include <SDL2/SDL_keycode.h>
 #include <iostream>
 #include <random>
+#include <fstream>
 
 // Fonction pour générer une valeur aléatoire dans une plage donnée
 // Recupere sur internet
@@ -22,6 +23,30 @@ bool spawnBonus() {
     return randomNumber < count;
 }
 
+std::vector<std::vector<int> > loadLevel(const std::string& filename) {
+    std::vector<std::vector<int> > levelData;
+    std::ifstream file(filename);
+    std::string line;
+
+    if (!file.is_open()) {
+        std::cerr << "Unable to open file: " << filename << std::endl;
+        return levelData;
+    }
+
+    while (getline(file, line)) {
+        std::vector<int> row;
+        for (char c : line) {
+            row.push_back(c != '0' ? c - '0' : 0);
+        }
+        levelData.push_back(row);
+    }
+    file.close();
+    std::cout << "Level Loaded Successfully." << std::endl;
+    return levelData;
+}
+
+
+
 /*
     Fonction qui permet de créer les bricks
     Initialise les briques dans la fenêtre de jeu. Définit la position, la taille,
@@ -29,27 +54,48 @@ bool spawnBonus() {
     Les briques plus proches du haut ont plus de résistance.
 */
 
-void Game::initBricks() {
-    const int windowWidth = 640;  // Largeur de la fenêtre
-    const int startY = 50;        // Début des briques à partir du haut de la fenêtre
-    const int brickHeight = 20;   // Hauteur de chaque brique
-    const int padding = 5;        // Espace entre les briques
-    const int rows = 4;           // Nombre de lignes de briques
+// void Game::initBricks() {
+//     const int windowWidth = 640;  // Largeur de la fenêtre
+//     const int startY = 50;        // Début des briques à partir du haut de la fenêtre
+//     const int brickHeight = 20;   // Hauteur de chaque brique
+//     const int padding = 5;        // Espace entre les briques
+//     const int rows = 4;           // Nombre de lignes de briques
 
-    //Calculer le nombre de colonnes et la largeur des briques pour qu'elles remplissent toute la largeur
-    const int cols = (windowWidth + padding) / (50 + padding);  // Approximation pour ajuster au mieux
-    const int brickWidth = (windowWidth - (cols + 1) * padding) / cols;  // Largeur ajustée pour remplir l'espace
+//     //Calculer le nombre de colonnes et la largeur des briques pour qu'elles remplissent toute la largeur
+//     const int cols = (windowWidth + padding) / (50 + padding);  // Approximation pour ajuster au mieux
+//     const int brickWidth = (windowWidth - (cols + 1) * padding) / cols;  // Largeur ajustée pour remplir l'espace
 
-    for (int i = 0; i < rows; ++i) {
-        int resistance = rows - i; // Plus de résistance pour les lignes supérieures
-        for (int j = 0; j < cols; ++j) {
-            int startX = j * (brickWidth + padding) + padding;  // Calcul de la position X de chaque brique
-            bricks.emplace_back(startX, startY + i * (brickHeight + padding), 
-                                brickWidth, brickHeight, resistance);
+//     for (int i = 0; i < rows; ++i) {
+//         int resistance = rows - i; // Plus de résistance pour les lignes supérieures
+//         for (int j = 0; j < cols; ++j) {
+//             int startX = j * (brickWidth + padding) + padding;  // Calcul de la position X de chaque brique
+//             bricks.emplace_back(startX, startY + i * (brickHeight + padding), 
+//                                 brickWidth, brickHeight, resistance);
+//         }
+//     }
+// }
+void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
+    const int windowWidth = 640;
+    const int brickHeight = 20;
+    const int padding = 5;
+    const int startY = 50;
+
+    int cols = levelData.empty() ? 0 : levelData[0].size();
+    int brickWidth = (windowWidth - (cols + 1) * padding) / cols;
+
+    bricks.clear(); // Nettoie toutes les briques existantes avant de remplir de nouvelles
+
+    for (int i = 0; i < levelData.size(); ++i) {
+        for (int j = 0; j < levelData[i].size(); ++j) {
+            if (levelData[i][j] != 0) {
+                int startX = j * (brickWidth + padding) + padding;
+                int resistance = levelData[i][j];
+                bricks.emplace_back(startX, startY + i * (brickHeight + padding),
+                                    brickWidth, brickHeight,resistance);
+            }
         }
     }
 }
-
 void Game::initBonus(){
     
     //Malus
@@ -73,8 +119,12 @@ Game::Game() : jeuTourne(false), gameStarted(false){
     paddle = std::make_unique<Paddle>(renderer, 640, 480); // Créer le Paddle
     ball = std::make_unique<Ball>(320, 435, 10); 
     // bonus(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false)
-
-    initBricks();
+    auto levelData = loadLevel("level/1.txt");
+        if (levelData.empty()) {
+            std::cerr << "Failed to load level data, exiting." << std::endl;
+            return;  // Handle failure appropriately
+        }
+    initBricks(levelData);
     initBonus();
 }
 

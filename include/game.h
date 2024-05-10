@@ -30,7 +30,7 @@ private:
 	std::unique_ptr<Ball> ball; // Ajouter un pointeur vers la balle
     std::vector<Brick> bricks; 
     //int vies;   
-    void initBricks();
+    void initBricks(const std::vector<std::vector<int> >& levelData);
     void initBonus();
     //void resetGame();
     

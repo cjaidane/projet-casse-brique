@@ -20,8 +20,7 @@ Brick::Brick(int x, int y, int w, int h, int resistance)
 */
 void Brick::render(SDL_Renderer* renderer) const {
     if (!active) return;
-    int colorIntensity = 255 * resistance / 5; // Diminuer l'intensité de la couleur basée sur la résistance
-    SDL_SetRenderDrawColor(renderer, 255, colorIntensity, colorIntensity, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 180, 255);  // Example: Hot Pink for visibility
     SDL_RenderFillRect(renderer, &rect);
 }
 
@@ -55,10 +54,8 @@ void Brick::render(SDL_Renderer* renderer) const {
 */
 bool Brick::checkCollision(const SDL_Rect& ballRect) {
     if (!active) return false;  // Si la brique n'est pas active, ne vérifiez pas les collisions.
-
     // Créez un SDL_Rect pour la brique.
     SDL_Rect brickRect = {rect.x, rect.y, rect.w, rect.h};
-
     // Utilisez SDL_HasIntersection pour vérifier si la balle intersecte la brique.
     if (SDL_HasIntersection(&ballRect, &brickRect)) {
         resistance--;  // Décrémentez la résistance de la brique.
@@ -79,5 +76,3 @@ bool Brick::checkCollision(const SDL_Rect& ballRect) {
 bool Brick::isActive() const {
     return active && resistance > 0;
 }
-
-

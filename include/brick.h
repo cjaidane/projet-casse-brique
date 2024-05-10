@@ -15,10 +15,10 @@ public:
 
 private:
     SDL_Rect rect;
-    int resistance; // Ajout de la résistance
     bool active; // Ajout de l'état actif qui sert à savoir si elles sont encore actives
-    //float initialResistance ; // Résistance initiale des briques
+    int resistance; // Ajout de la résistance qui indique combien de fois elles doivent être touchées avant d'être détruites
     
 };
 
 #endif // BRICK_H
+
