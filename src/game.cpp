@@ -1,5 +1,7 @@
 #include "../include/game.h"
 #include "SDL2/SDL_rect.h"
+#include "SDL2/SDL_render.h"
+#include "SDL2/SDL_timer.h"
 // #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_keycode.h>
 #include <iostream>
@@ -30,7 +32,7 @@ std::vector<std::vector<int> > loadLevel(const std::string& filename) {
     std::string line;
 
     if (!file.is_open()) {
-        std::cerr << "Unable to open file: " << filename << std::endl;
+        std::cerr << "Pas possible d'ouvrir le fichier: " << filename << std::endl;
         return levelData;
     }
 
@@ -42,39 +44,19 @@ std::vector<std::vector<int> > loadLevel(const std::string& filename) {
         levelData.push_back(row);
     }
     file.close();
-    std::cout << "Level Loaded Successfully." << std::endl;
+    std::cout << "Niveau charge avec succes." << std::endl;
     return levelData;
 }
 
 
 
 /*
-    Fonction qui permet de créer les bricks
-    Initialise les briques dans la fenêtre de jeu. Définit la position, la taille,
-    et la résistance des briques en fonction de leur position verticale.
-    Les briques plus proches du haut ont plus de résistance.
+    Fonction qui initialise les briques du jeu.
+    Calcule la position de chaque brique en fonction de la taille de la fenêtre
+    et de la taille des briques. Les briques sont stockées dans un vecteur de briques.
+
+    @param levelData Un vecteur de vecteurs d'entiers représentant les données du niveau.
 */
-
-// void Game::initBricks() {
-//     const int windowWidth = 640;  // Largeur de la fenêtre
-//     const int startY = 50;        // Début des briques à partir du haut de la fenêtre
-//     const int brickHeight = 20;   // Hauteur de chaque brique
-//     const int padding = 5;        // Espace entre les briques
-//     const int rows = 4;           // Nombre de lignes de briques
-
-//     //Calculer le nombre de colonnes et la largeur des briques pour qu'elles remplissent toute la largeur
-//     const int cols = (windowWidth + padding) / (50 + padding);  // Approximation pour ajuster au mieux
-//     const int brickWidth = (windowWidth - (cols + 1) * padding) / cols;  // Largeur ajustée pour remplir l'espace
-
-//     for (int i = 0; i < rows; ++i) {
-//         int resistance = rows - i; // Plus de résistance pour les lignes supérieures
-//         for (int j = 0; j < cols; ++j) {
-//             int startX = j * (brickWidth + padding) + padding;  // Calcul de la position X de chaque brique
-//             bricks.emplace_back(startX, startY + i * (brickHeight + padding), 
-//                                 brickWidth, brickHeight, resistance);
-//         }
-//     }
-// }
 void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
     const int windowWidth = 640;
     const int brickHeight = 20;
@@ -123,7 +105,7 @@ Game::Game() : jeuTourne(false), gameStarted(false){
     // bonus(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false)
     auto levelData = loadLevel("level/1.txt");
         if (levelData.empty()) {
-            std::cerr << "Failed to load level data, exiting." << std::endl;
+            std::cerr << "Echec de chargement de fichier" << std::endl;
             return;  // Handle failure appropriately
         }
     initBricks(levelData);
@@ -152,8 +134,15 @@ std::string Game::getNextLevelFilename() {
 void Game::resetGameState() {
     // Réinitialiser ou configurer d'autres états de jeu nécessaires
     ball->reset(320, 435, 10); // Supposons que `reset` repositionne et remet la balle en jeu
-    paddle->render(renderer); // Supposons une méthode de réinitialisation pour le paddle
+   // paddle->render(renderer); // Supposons une méthode de réinitialisation pour le paddle
     gameStarted = false;  // Prêt à redémarrer le jeu pour le nouveau niveau
+}
+
+// Callback du timer
+static Uint32 changeLevelCallback(Uint32 interval, void* param) {
+    Game* game = static_cast<Game*>(param);
+    game->loadNextLevel();
+    return 0;  // Arrêter le timer
 }
 /*
     Fonction qui permet de mettre à jour la logique du jeu.
@@ -165,17 +154,22 @@ void Game::updateGameLogic() {
     // Vérifier les collisions
     // Vérifier si toutes les briques sont détruites
     if (activeCountBrick == 0) {
-        std::string nextLevelFilename = getNextLevelFilename(); 
-        auto levelData = loadLevel(nextLevelFilename);
-        if (!levelData.empty()) {
-            initBricks(levelData);
-            resetGameState();  // Réinitialiser l'état du jeu pour le nouveau niveau
-        } else {
-            gameState = GAME_OVER;
-        }
+        gameState=CHANGEMENT_NIVEAU;
+        SDL_AddTimer(3000,changeLevelCallback, this);
     }
 }
 
+void Game::loadNextLevel() {
+    std::string nextLevelFilename = getNextLevelFilename(); 
+    auto levelData = loadLevel(getNextLevelFilename());
+    if (!levelData.empty()) {
+        initBricks(levelData);
+        resetGameState();
+        gameState = JEU_EN_COURS;
+    } else {
+        gameState = GAME_OVER;
+    }
+}
 
 
 /*
@@ -277,6 +271,15 @@ void Game::run() {
     quitMessageRect.x = (win.getWinWidth() - quitMessageRect.w) / 2;
     quitMessageRect.y = (win.getWinHeight() - quitMessageRect.h) / 2 + 40;
 
+
+    // Afficher un message pour changer de niveau
+    SDL_Surface* nextLevelSurface = TTF_RenderText_Solid(font, "Next Level", textColor);
+    SDL_Texture* nextLeveltexture = SDL_CreateTextureFromSurface(renderer, nextLevelSurface);
+    SDL_Rect nextLevelReact = {0, 0, 300, 100};
+    nextLevelReact.x = (win.getWinWidth() - nextLevelReact.w) / 2;
+    nextLevelReact.y = (win.getWinHeight() - nextLevelReact.h) / 2 - 80;
+
+
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
     SDL_Rect destRectHeart;
 
@@ -371,11 +374,13 @@ void Game::run() {
                     if (brick.isActive() && brick.checkCollision(ballRect)) {
                         // Réagir à la collision
                         ball->reverseYVelocity();  
+                        //brick.isActive();
                         activeCountBrick--;
                     }
                 }
                 //Fonction qui permet de mettre à jour quand on passe au prochain niveau
                 updateGameLogic();
+                //loadNextLevel();
                 
                 SDL_Rect newPaddleSize;
 
@@ -485,6 +490,11 @@ void Game::run() {
 
                 // SDL_RenderPresent(renderer);
             //break;
+
+            case CHANGEMENT_NIVEAU:
+                SDL_RenderCopy(renderer, nextLeveltexture, nullptr, &nextLevelReact);
+                SDL_RenderPresent(renderer);
+                break;
         }
 
         // Introduit un léger délai de 10 millisecondes entre chaque itération de la boucle de jeu.
