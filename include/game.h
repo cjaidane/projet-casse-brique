@@ -22,6 +22,7 @@ public:
     void updateGameLogic();
     void loadNextLevel();
     int countdown;  // Ajouter ceci dans la section des attributs de la classe
+    bool isCounterPaused;
 
 private:
     Window win;
