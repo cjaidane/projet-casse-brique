@@ -21,6 +21,7 @@ public:
     void run();
     void updateGameLogic();
     void loadNextLevel();
+    int niveauActuel=1;
 
 private:
     Window win;
@@ -36,8 +37,8 @@ private:
     void initBricks(const std::vector<std::vector<int> >& levelData);
     void initBonus();
     void resetGameState();
-    std::string getNextLevelFilename();
-    
+   
+    void displayLevel();
     enum GameState  {
     	MENU,
         JEU_EN_COURS,

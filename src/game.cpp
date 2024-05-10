@@ -112,18 +112,6 @@ Game::Game() : jeuTourne(false), gameStarted(false){
     initBonus();
 }
 
-/*
-    Fonction qui permet de passer au niveau suivant.
-    Construit le chemin du fichier de niveau en fonction du niveau actuel.
-    Incrémente le niveau actuel pour passer au niveau suivant.
-    @return Le chemin du fichier de niveau suivant.
-
-*/
-std::string Game::getNextLevelFilename() {
-    static int currentLevel = 1;  // Stocker le niveau actuel
-    currentLevel++;  // Incrémenter pour passer au prochain niveau
-    return "level/" + std::to_string(currentLevel) + ".txt";  // Construire le chemin du fichier de niveau
-}
 
 /*
     Fonction qui permet de réinitialiser l'état du jeu.
@@ -160,8 +148,11 @@ void Game::updateGameLogic() {
 }
 
 void Game::loadNextLevel() {
-    std::string nextLevelFilename = getNextLevelFilename(); 
-    auto levelData = loadLevel(getNextLevelFilename());
+    niveauActuel++;
+    std::string nextLevelFilename = "level/"+std::to_string(niveauActuel)+".txt";
+   // std::string nextLevelFilename = getNextLevelFilename(); 
+    //auto levelData = loadLevel(getNextLevelFilename());
+    auto levelData = loadLevel(nextLevelFilename);
     if (!levelData.empty()) {
         initBricks(levelData);
         resetGameState();
@@ -170,6 +161,29 @@ void Game::loadNextLevel() {
         gameState = GAME_OVER;
     }
 }
+
+void Game::displayLevel() {
+    TTF_Font* font = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
+    if (!font) {
+        std::cerr << "Erreur lors du chargement de la police : " << TTF_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Color textColor = {255, 255, 255};  // Blanc
+    std::string levelText = "Niveau: " + std::to_string(niveauActuel);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, levelText.c_str(), textColor);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    int text_width = 0, text_height = 0;
+    SDL_QueryTexture(texture, NULL, NULL, &text_width, &text_height);
+    SDL_Rect renderQuad = {win.getWinWidth() - text_width - 10, 10, text_width, text_height};
+
+    SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
+}
+
 
 
 /*
@@ -353,7 +367,7 @@ void Game::run() {
             break;
 
             case JEU_EN_COURS:
-
+                displayLevel();
                 //Dessiner les bricks active
                 for (auto& brick : bricks) {
                     if (brick.isActive()) {
