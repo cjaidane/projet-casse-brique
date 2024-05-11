@@ -114,10 +114,13 @@ void Game::initBonus(){
     
     //Malus
     bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false);
-    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
+   bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
+        //Multiball
+    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, MULTIBALL, false);
     //Bonus
-    bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
-    bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
+   bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
+   bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
+    
 }
 
 /*
@@ -131,7 +134,8 @@ Game::Game() : jeuTourne(false), gameStarted(false), isCounterPaused(false), bri
     win.init("Casse Brique");
     renderer = win.getRenderer(); 
     paddle = std::make_unique<Paddle>(renderer, 640, 480); // Créer le Paddle
-    ball = std::make_unique<Ball>(320, 435, 10); 
+    //ball = std::make_unique<Ball>(320, 435, 10); 
+    balls.push_back(std::make_unique<Ball>(320, 435, 10));
     // bonus(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false)
     auto levelData = loadLevel("level/1.txt");
         if (levelData.empty()) {
@@ -152,9 +156,13 @@ Game::Game() : jeuTourne(false), gameStarted(false), isCounterPaused(false), bri
 */
 void Game::resetGameState() {
     // Réinitialiser ou configurer d'autres états de jeu nécessaires
-    ball->reset(320, 435, 10); // Supposons que `reset` repositionne et remet la balle en jeu
+    //ball->reset(320, 435, 10); // Supposons que `reset` repositionne et remet la balle en jeu
     //countdown=0;
    // paddle->render(renderer); // Supposons une méthode de réinitialisation pour le paddle
+    
+    for (auto& b : balls) {
+        b->reset(320, 435, 10); // Réinitialisation de chaque balle
+    }
     gameStarted = false;  // Prêt à redémarrer le jeu pour le nouveau niveau
 }
 
@@ -194,6 +202,9 @@ void Game::updateGameLogic() {
         countdown = 5;  // Commence le compteur à 3 secondes
         gameState=CHANGEMENT_NIVEAU;
         SDL_AddTimer(1000, countdownTimerCallback, this);  // Démarre le timer pour décompter chaque seconde
+    }
+    for (auto& b : balls) {
+        b->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect());
     }
 }
 
@@ -303,6 +314,15 @@ SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* imagePath) {
     SDL_FreeSurface(surface);
 
     return texture;
+}
+
+void Game::activateMultiball() {
+    if (!balls.empty()) {  // Vérifiez s'il y a déjà des balles pour éviter les erreurs.
+        auto newBall = std::make_unique<Ball>(*balls.front());  // Utiliser la première balle comme modèle
+        // Vous pouvez ajuster la vélocité pour différencier légèrement la nouvelle balle.
+        newBall->setVel(newBall->getVelX() , newBall->getVelY());  // Modifier légèrement la vélocité
+        balls.push_back(std::move(newBall));
+    }
 }
 
 /*
@@ -416,17 +436,27 @@ void Game::run() {
                                 paddle->moveRight();
                             }
                             break;
+                        // case SDLK_SPACE:
+                        //     if (gameState == JEU_EN_COURS) {
+                        //         if (!gameStarted) {
+                        //             ball->launch();
+                        //             // for(auto& ball : ball){
+                        //             //     ball->launch();
+                        //             // }
+                        //             gameStarted = true;
+                        //         }
+                        //     }else if (gameState == MENU) {
+                            
+                        //         gameState = JEU_EN_COURS;
+                        //     }
+                        //     break;
                         case SDLK_SPACE:
                             if (gameState == JEU_EN_COURS) {
                                 if (!gameStarted) {
-                                    ball->launch();
-                                    // for(auto& ball : ball){
-                                    //     ball->launch();
-                                    // }
+                                    for (auto& b : balls) { b->launch(); }
                                     gameStarted = true;
                                 }
-                            }else if (gameState == MENU) {
-                            
+                            } else if (gameState == MENU) {
                                 gameState = JEU_EN_COURS;
                             }
                             break;
@@ -497,13 +527,22 @@ void Game::run() {
                     }
                     for(auto& brickH : bricksH){
                         if (brickH.isActive()) {
-                            SDL_Rect ballRect = ball->getRect();
-                            if (brickH.checkCollision(ballRect)) {
-                                ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
-                                if (!brickH.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
-                                    activeCountBrickH--;  // Décrémentez seulement si la brique est désormais inactive.
+                            for(auto& ball : balls){
+                                SDL_Rect ballRect = ball->getRect();
+                                if (brickH.checkCollision(ballRect)) {
+                                    ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                                    if (!brickH.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                                        activeCountBrickH--;  // Décrémentez seulement si la brique est désormais inactive.
+                                    }
                                 }
                             }
+                            // SDL_Rect ballRect = ball->getRect();
+                            // if (brickH.checkCollision(ballRect)) {
+                            //     ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                            //     if (!brickH.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                            //         activeCountBrickH--;  // Décrémentez seulement si la brique est désormais inactive.
+                            //     }
+                            // }
                         }
                     }
                 } else {
@@ -517,13 +556,22 @@ void Game::run() {
                     // Vérifiez la collision de la balle avec chaque brique active
                     for (auto& brick : bricks) {
                         if (brick.isActive()) {
-                            SDL_Rect ballRect = ball->getRect();
-                            if (brick.checkCollision(ballRect)) {
-                                ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
-                                if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
-                                    activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
+                            for(auto& ball : balls){
+                                SDL_Rect ballRect = ball->getRect();
+                                if (brick.checkCollision(ballRect)) {
+                                    ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                                    if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                                        activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
+                                    }
                                 }
                             }
+                            // SDL_Rect ballRect = ball->getRect();
+                            // if (brick.checkCollision(ballRect)) {
+                            //     ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                            //     if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                            //         activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
+                            //     }
+                            // }
                         }
                     }
                 }
@@ -531,12 +579,16 @@ void Game::run() {
 
             
                 paddle->render(renderer);// Dessine le paddle
-                ball->render(renderer); // Dessine la balle
-                //permet de mettre à jour la position de la balle quand le paddle est en mouvement
-                ball->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect()); 
-
+                // ball->render(renderer); // Dessine la balle
+                // //permet de mettre à jour la position de la balle quand le paddle est en mouvement
+                // ball->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect()); 
+                for (auto& b : balls) { b->render(renderer); }
+                for (auto& b : balls) {
+                    b->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect());
+                }
                 //Permet la collision entre la balle et les briques
-                ballRect=ball-> getRect();
+                
+              //  for(auto& ball:balls){ballRect=ball-> getRect();}
 
 
               
@@ -547,7 +599,7 @@ void Game::run() {
                 
                 SDL_Rect newPaddleSize;
 
-                switch (ball->getVies()) {
+                switch (balls.front()->getVies()) {
                     case 0:
                         gameState = GAME_OVER;
                     break;
@@ -604,7 +656,11 @@ void Game::run() {
                                 paddle->setRect(newPaddleSize);
                                 break;
                             case DECREASE_SPEED_BALL:
-                                ball->setVel(ball->getVelX() + 1, ball->getVelY() - 1);
+                               // for(auto& ball:balls){ball->setVel(ball->getVelX() + 1, ball->getVelY() - 1);}
+                               for(auto& ball:balls){
+                                ball->adjustSpeed(-1);
+                               }
+                                
                                 break;
                             default:
                                 //Prendre en compte si MALUS et autre
@@ -618,10 +674,17 @@ void Game::run() {
                                 paddle->setRect(newPaddleSize);
                                 break;
                             case INCREASE_SPEED_BALL:
-                                ball->setVel(ball->getVelX() - 1, ball->getVelY() + 1);
+                                for(auto& ball:balls){
+                                // ball->setVel(ball->getVelX() - 1, ball->getVelY() + 1);
+                                ball->adjustSpeed(1);
+                                }
                                 break;
                             default:
                                 //Prendre en compte si BONUS et autre
+                                break;
+                            case MULTIBALL:
+                                activateMultiball();
+                                bonus.setUsed(true);
                                 break;
                         }
 
@@ -669,7 +732,7 @@ void Game::run() {
         }
 
         // Introduit un léger délai de 10 millisecondes entre chaque itération de la boucle de jeu.
-        SDL_Delay(10); // Léger délai
+        SDL_Delay(20); // Léger délai
     }
 
     win.quit(); // Nettoyer et quitter

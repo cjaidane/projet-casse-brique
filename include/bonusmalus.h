@@ -15,7 +15,8 @@ enum Bonus{
 enum Malus{
     BONUS,
     DECREASE_PADDLE,
-    INCREASE_SPEED_BALL
+    INCREASE_SPEED_BALL,
+    MULTIBALL
 };
 
 

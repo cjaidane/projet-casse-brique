@@ -16,9 +16,9 @@ BonusMalus::~BonusMalus() {
 void BonusMalus::render(SDL_Renderer* renderer) {
     if (active) {
         if (bonus) {
-            SDL_SetRenderDrawColor(renderer, 23, 207, 62, 255); // Blanc
+            SDL_SetRenderDrawColor(renderer, 23, 207, 62, 255); // Vert
         }else {
-            SDL_SetRenderDrawColor(renderer, 207, 23, 23, 255); // Blanc
+            SDL_SetRenderDrawColor(renderer, 207, 23, 23, 255); //  Rouge
         }
         SDL_Rect ballRect = {center.x - radius, center.y - radius, 2 * radius, 2 * radius};
         SDL_RenderFillRect(renderer, &ballRect);
@@ -47,6 +47,7 @@ void BonusMalus::update(int windowWidth, int windowHeight, SDL_Rect paddleRect) 
             // std::cout << "Bonus" << std::endl;
             active = false;
             activationBonus = true;
+
         }
     }
 }
