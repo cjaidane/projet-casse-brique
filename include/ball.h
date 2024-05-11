@@ -22,7 +22,7 @@ public:
 
     int getVelX();
     int getVelY();
-
+    
     int getVies();
 
 private:

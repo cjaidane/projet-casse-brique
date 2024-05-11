@@ -32,7 +32,9 @@ private:
     bool gameStarted;
     SDL_Renderer* renderer; 
     SDL_Rect ballRect;
-	std::unique_ptr<Ball> ball; // Ajouter un pointeur vers la balle
+	
+	std::vector<std::unique_ptr<Ball> > balls;  // Gérer plusieurs balles
+    //std::unique_ptr<Ball> ball; // Ajouter un pointeur vers la balle
     std::vector<Brick> bricks; 
     std::vector<BrickHexagone> bricksH; 
     //int vies;   
@@ -45,6 +47,7 @@ private:
     void resetGameState();
     void displayNextLevelCountdown();
     void displayLevel();
+    void activateMultiball();
     enum GameState  {
     	MENU,
         JEU_EN_COURS,

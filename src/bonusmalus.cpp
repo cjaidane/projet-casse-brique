@@ -38,7 +38,6 @@ void BonusMalus::update(int windowWidth, int windowHeight, SDL_Rect paddleRect) 
 
         center.x += velX;
         center.y += velY;
-
         if (center.y + radius >= paddleRect.y &&
             center.y + radius <= paddleRect.y + paddleRect.h &&
             center.x >= paddleRect.x &&

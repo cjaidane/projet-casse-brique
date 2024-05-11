@@ -15,6 +15,7 @@ Ball::Ball(int x, int y, int radius) : radius(radius), velX(0), velY(0), vies(3)
     center.y = y;
 }
 
+
 /*
     Met à jour la position et le comportement de la balle en fonction de l'état du jeu.
 
