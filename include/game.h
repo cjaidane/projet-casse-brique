@@ -5,7 +5,8 @@
 #include "window.h"
 #include "paddle.h" // Inclure l'en-tête du Paddle
 #include "brick.h"
-#include "../include/bonusmalus.h"
+#include "briqueHexagone.h"
+#include "bonusmalus.h"
 #include <memory>
 // #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_ttf.h>
@@ -31,9 +32,13 @@ private:
     SDL_Rect ballRect;
 	std::unique_ptr<Ball> ball; // Ajouter un pointeur vers la balle
     std::vector<Brick> bricks; 
+    std::vector<BrickHexagone> bricksH; 
     //int vies;   
+    bool brickOrH;
     int activeCountBrick;
+    int activeCountBrickH;
     void initBricks(const std::vector<std::vector<int> >& levelData);
+    void initBricksH(const std::vector<std::vector<int> >& levelData);
     void initBonus();
     void resetGameState();
     std::string getNextLevelFilename();

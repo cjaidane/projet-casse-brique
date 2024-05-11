@@ -5,6 +5,8 @@
 // #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_keycode.h>
 #include <iostream>
+#include <iterator>
+#include <ostream>
 #include <random>
 #include <fstream>
 
@@ -80,6 +82,25 @@ void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
         }
     }
 }
+
+
+void Game::initBricksH(const std::vector<std::vector<int> >& levelData) {
+    const int windowWidth = win.getWinWidth();
+    activeCountBrickH = 0;
+    int cols = levelData.empty() ? 0 : levelData[0].size();
+    bricksH.clear(); // Nettoie toutes les briques existantes avant de remplir de nouvelles
+
+    for (int i = 0; i < levelData.size(); ++i) {
+        for (int j = 0; j < levelData[i].size(); ++j) {
+            if (levelData[i][j] != 0) {
+                activeCountBrickH++;
+                // std::cout << i << " " << j << " " << -j-i << std::endl;
+                bricksH.emplace_back(levelData[i][j], j, i, -j-i);
+            }
+        }
+    }
+}
+
 void Game::initBonus(){
     
     //Malus
@@ -96,7 +117,7 @@ void Game::initBonus(){
     la fenêtre, le renderer, le paddle, la balle, et charge les briques.
 
 */
-Game::Game() : jeuTourne(false), gameStarted(false){
+Game::Game() : jeuTourne(false), gameStarted(false), brickOrH(false){
     // Initialiser Window et SDL avant d'initialiser Paddle
     win.init("Casse Brique");
     renderer = win.getRenderer(); 
@@ -109,6 +130,7 @@ Game::Game() : jeuTourne(false), gameStarted(false){
             return;  // Handle failure appropriately
         }
     initBricks(levelData);
+    initBricksH(levelData);
     initBonus();
 }
 
@@ -153,7 +175,7 @@ void Game::updateGameLogic() {
     // Dessiner et mettre à jour les briques, le paddle, la balle, etc.
     // Vérifier les collisions
     // Vérifier si toutes les briques sont détruites
-    if (activeCountBrick == 0) {
+    if (activeCountBrick == 0 || activeCountBrickH == 0) {
         gameState=CHANGEMENT_NIVEAU;
         SDL_AddTimer(3000,changeLevelCallback, this);
     }
@@ -164,6 +186,7 @@ void Game::loadNextLevel() {
     auto levelData = loadLevel(getNextLevelFilename());
     if (!levelData.empty()) {
         initBricks(levelData);
+        initBricksH(levelData);
         resetGameState();
         gameState = JEU_EN_COURS;
     } else {
@@ -323,6 +346,15 @@ void Game::run() {
                             }
 
                         break;
+                        case SDLK_k:
+
+                            if (gameState == MENU) {
+                                std::cout << "MENU" << std::endl;
+                                brickOrH = true;
+                                gameState = JEU_EN_COURS;
+                            }
+
+                        break;
                     }
                     break;
                 case SDL_MOUSEMOTION:
@@ -354,12 +386,38 @@ void Game::run() {
 
             case JEU_EN_COURS:
 
-                //Dessiner les bricks active
-                for (auto& brick : bricks) {
-                    if (brick.isActive()) {
-                        brick.render(renderer);
+                if (brickOrH == true) {
+                    for (auto& brickH : bricksH) {
+                        brickH.render({255, 255, 255, 255}, renderer);
+
+                        if (brickH.isActive() && brickH.checkCollision(ballRect)) {
+                            // Réagir à la collision
+                            ball->reverseYVelocity();  
+                            //brick.isActive();
+                            activeCountBrickH--;
+                        }
                     }
+                }else {
+                
+                    //Dessiner les bricks active
+                    for (auto& brick : bricks) {
+                        if (brick.isActive()) {
+                            brick.render(renderer);
+                        }
+
+                        // Boucle sur chaque brique pour vérifier si une collision avec la balle a lieu.
+                        for (auto& brick : bricks) {
+                            if (brick.isActive() && brick.checkCollision(ballRect)) {
+                                // Réagir à la collision
+                                ball->reverseYVelocity();  
+                                //brick.isActive();
+                                activeCountBrick--;
+                            }
+                        }
+                    }
+
                 }
+
 
                 paddle->render(renderer);// Dessine le paddle
                 ball->render(renderer); // Dessine la balle
@@ -369,15 +427,6 @@ void Game::run() {
                 //Permet la collision entre la balle et les briques
                 ballRect=ball-> getRect();
 
-                // Boucle sur chaque brique pour vérifier si une collision avec la balle a lieu.
-                for (auto& brick : bricks) {
-                    if (brick.isActive() && brick.checkCollision(ballRect)) {
-                        // Réagir à la collision
-                        ball->reverseYVelocity();  
-                        //brick.isActive();
-                        activeCountBrick--;
-                    }
-                }
                 //Fonction qui permet de mettre à jour quand on passe au prochain niveau
                 updateGameLogic();
                 //loadNextLevel();

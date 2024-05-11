@@ -29,6 +29,7 @@ target_sources(${PROJECT_NAME}
                 src/paddle.cpp
                 src/ball.cpp
                 src/brick.cpp
+                src/brickHexagone.cpp
                 src/bonusmalus.cpp
 )
 
@@ -43,6 +44,7 @@ target_include_directories(${PROJECT_NAME}
                                 include/paddle
                                 include/ball
                                 include/brick
+                                include/brickHexagone
                                 include/bonusmalus
                 
 )
