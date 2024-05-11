@@ -102,8 +102,9 @@ void Game::initBricksH(const std::vector<std::vector<int> >& levelData) {
         for (int j = 0; j < levelData[i].size(); ++j) {
             if (levelData[i][j] != 0) {
                 activeCountBrickH++;
+                int resistance=levelData[i][j];
                 // std::cout << i << " " << j << " " << -j-i << std::endl;
-                bricksH.emplace_back(levelData[i][j], j, i, -j-i);
+                bricksH.emplace_back(resistance, j, i, -j-i);
             }
         }
     }
@@ -152,6 +153,7 @@ Game::Game() : jeuTourne(false), gameStarted(false), isCounterPaused(false), bri
 void Game::resetGameState() {
     // Réinitialiser ou configurer d'autres états de jeu nécessaires
     ball->reset(320, 435, 10); // Supposons que `reset` repositionne et remet la balle en jeu
+    //countdown=0;
    // paddle->render(renderer); // Supposons une méthode de réinitialisation pour le paddle
     gameStarted = false;  // Prêt à redémarrer le jeu pour le nouveau niveau
 }
@@ -376,7 +378,7 @@ void Game::run() {
     // Afficher messages niveaux atteint
     SDL_Surface* allLevelsCompleteSurface = TTF_RenderText_Solid(font, "Tous les niveaux ont ete atteints!", textColor);
     SDL_Texture* allLevelsCompleteTexture = SDL_CreateTextureFromSurface(renderer, allLevelsCompleteSurface);
-    SDL_Rect allLevelsCompleteRect = {0, 0, 300, 300};
+    SDL_Rect allLevelsCompleteRect = {0, 0, 500, 200};
     allLevelsCompleteRect.x = (win.getWinWidth() - allLevelsCompleteRect.w) / 2;
     allLevelsCompleteRect.y = (win.getWinHeight() - allLevelsCompleteRect.h) / 2 - 80;
    
@@ -386,8 +388,11 @@ void Game::run() {
     SDL_Rect pauseMessageReact = {0, 0, 400, 50};
     pauseMessageReact.x = (win.getWinWidth() - pauseMessageReact.w) / 2;
     pauseMessageReact.y = (win.getWinHeight() - pauseMessageReact.h) / 2 + 40;
-   
-
+    
+    //Afficher message pour hexagone
+    SDL_Surface* hexagoneMessage = TTF_RenderText_Solid(font, "Appuyez sur H pour activer les hexagones", messageColor);
+    SDL_Texture* hexagoneTexture = SDL_CreateTextureFromSurface(renderer, hexagoneMessage);
+    SDL_Rect hexagoneMessageReact = {0, 0, 400, 50};
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
     SDL_Rect destRectHeart;
 
@@ -486,38 +491,45 @@ void Game::run() {
 
                 if (brickOrH == true) {
                     for (auto& brickH : bricksH) {
-                        brickH.render({255, 255, 255, 255}, renderer);
-
-                        if (brickH.isActive() && brickH.checkCollision(ballRect)) {
-                            // Réagir à la collision
-                            ball->reverseYVelocity();  
-                            //brick.isActive();
-                            activeCountBrickH--;
+                        if (brickH.isActive() ) {
+                           brickH.render({255, 255, 255, 255}, renderer);
                         }
                     }
-                }else {
-                
-                //Dessiner les bricks active
-                for (auto& brick : bricks) {
-                    if (brick.isActive()) {
-                        brick.render(renderer);
-                        }
-                        // Vérifiez la collision de la balle avec chaque brique active
-                        for (auto& brick : bricks) {
-                            if (brick.isActive()) {
-                                SDL_Rect ballRect = ball->getRect();
-                                if (brick.checkCollision(ballRect)) {
-                                    ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
-                                    if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
-                                        activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
-                                    }
+                    for(auto& brickH : bricksH){
+                        if (brickH.isActive()) {
+                            SDL_Rect ballRect = ball->getRect();
+                            if (brickH.checkCollision(ballRect)) {
+                                ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                                if (!brickH.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                                    activeCountBrickH--;  // Décrémentez seulement si la brique est désormais inactive.
                                 }
                             }
                         }
+                    }
+                } else {
+                
+                    //Dessiner les bricks active
+                    for (auto& brick : bricks) {
+                        if (brick.isActive()) {
+                            brick.render(renderer);
+                        }
+                    }
+                    // Vérifiez la collision de la balle avec chaque brique active
+                    for (auto& brick : bricks) {
+                        if (brick.isActive()) {
+                            SDL_Rect ballRect = ball->getRect();
+                            if (brick.checkCollision(ballRect)) {
+                                ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                                if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                                    activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
+                                }
+                            }
+                        }
+                    }
                 }
-                }
+               
 
-
+            
                 paddle->render(renderer);// Dessine le paddle
                 ball->render(renderer); // Dessine la balle
                 //permet de mettre à jour la position de la balle quand le paddle est en mouvement
