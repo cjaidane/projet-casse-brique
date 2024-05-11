@@ -113,13 +113,13 @@ void Game::initBricksH(const std::vector<std::vector<int> >& levelData) {
 void Game::initBonus(){
     
     //Malus
-    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false);
-   bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
+   // bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false);
+   //bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
         //Multiball
     bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, MULTIBALL, false);
     //Bonus
-   bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
-   bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
+  // bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
+   //bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
     
 }
 
@@ -582,8 +582,9 @@ void Game::run() {
                 // ball->render(renderer); // Dessine la balle
                 // //permet de mettre à jour la position de la balle quand le paddle est en mouvement
                 // ball->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect()); 
-                for (auto& b : balls) { b->render(renderer); }
+                //for (auto& b : balls) {  }
                 for (auto& b : balls) {
+                    b->render(renderer);
                     b->update(gameStarted, win.getWinWidth(), win.getWinHeight(), paddle->getRect());
                 }
                 //Permet la collision entre la balle et les briques
@@ -656,10 +657,10 @@ void Game::run() {
                                 paddle->setRect(newPaddleSize);
                                 break;
                             case DECREASE_SPEED_BALL:
-                               // for(auto& ball:balls){ball->setVel(ball->getVelX() + 1, ball->getVelY() - 1);}
-                               for(auto& ball:balls){
-                                ball->adjustSpeed(-1);
-                               }
+                               for(auto& ball:balls){ball->setVel(ball->getVelX() + 1, ball->getVelY() - 1);}
+                            //    for(auto& ball:balls){
+                            //     ball->adjustSpeed(-1);
+                            //    }
                                 
                                 break;
                             default:
@@ -675,8 +676,8 @@ void Game::run() {
                                 break;
                             case INCREASE_SPEED_BALL:
                                 for(auto& ball:balls){
-                                // ball->setVel(ball->getVelX() - 1, ball->getVelY() + 1);
-                                ball->adjustSpeed(1);
+                                 ball->setVel(ball->getVelX() - 1, ball->getVelY() + 1);
+                               // ball->adjustSpeed(1);
                                 }
                                 break;
                             default:
@@ -686,6 +687,7 @@ void Game::run() {
                                 activateMultiball();
                                 bonus.setUsed(true);
                                 break;
+                                
                         }
 
                         bonus.setActivationBonus(false);
