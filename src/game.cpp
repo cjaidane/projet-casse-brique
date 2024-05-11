@@ -113,13 +113,13 @@ void Game::initBricksH(const std::vector<std::vector<int> >& levelData) {
 void Game::initBonus(){
     
     //Malus
-   // bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false);
-   //bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, INCREASE_SPEED_BALL, false);
         //Multiball
-    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS, MULTIBALL, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), false, 10, MALUS,MULTIBALL, false);
     //Bonus
-  // bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
-   //bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), true, 10, INCREASE_PADDLE, BONUS, false);
+    bonus.emplace_back(generateRandomNumber(20, 600), true, 10, DECREASE_SPEED_BALL, BONUS, false);
     
 }
 
@@ -320,7 +320,7 @@ void Game::activateMultiball() {
     if (!balls.empty()) {  // Vérifiez s'il y a déjà des balles pour éviter les erreurs.
         auto newBall = std::make_unique<Ball>(*balls.front());  // Utiliser la première balle comme modèle
         // Vous pouvez ajuster la vélocité pour différencier légèrement la nouvelle balle.
-        newBall->setVel(newBall->getVelX() , newBall->getVelY());  // Modifier légèrement la vélocité
+        newBall->setVel(newBall->getVelX()+2 , newBall->getVelY());  // Modifier légèrement la vélocité
         balls.push_back(std::move(newBall));
     }
 }
@@ -686,6 +686,7 @@ void Game::run() {
                             case MULTIBALL:
                                 activateMultiball();
                                 bonus.setUsed(true);
+                                bonus.setActivationBonus(false);
                                 break;
                                 
                         }
