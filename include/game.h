@@ -22,6 +22,8 @@ public:
     void run();
     void updateGameLogic();
     void loadNextLevel();
+    int countdown;  // Ajouter ceci dans la section des attributs de la classe
+    bool isCounterPaused;
 
 private:
     Window win;
@@ -41,14 +43,17 @@ private:
     void initBricksH(const std::vector<std::vector<int> >& levelData);
     void initBonus();
     void resetGameState();
-    std::string getNextLevelFilename();
-    
+    void displayNextLevelCountdown();
+    void displayLevel();
     enum GameState  {
     	MENU,
         JEU_EN_COURS,
         CHANGEMENT_NIVEAU,
-        GAME_OVER
+        GAME_OVER,
+        TOUS_NIVEAUX_ATTEINTS
     };
+    int niveauActuel=1;
+    
 
     GameState gameState;
     std::vector<BonusMalus> bonus;

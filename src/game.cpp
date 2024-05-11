@@ -10,6 +10,7 @@
 #include <random>
 #include <fstream>
 
+
 // Fonction pour générer une valeur aléatoire dans une plage donnée
 // Recupere sur internet
 int generateRandomNumber(int min, int max) {
@@ -27,7 +28,15 @@ bool spawnBonus() {
     return randomNumber < count;
 }
 
-// Fonction pour charger un niveau à partir d'un fichier
+/*
+    Fonction pour charger un niveau à partir d'un fichier texte.
+    Le fichier texte contient des données de niveau sous forme de grille.
+    Chaque caractère représente un type de brique, où '0' signifie pas de brique.
+
+    @param filename Nom du fichier texte contenant les données du niveau.
+    @return Un vecteur de vecteurs d'entiers représentant les données du niveau.
+
+*/
 std::vector<std::vector<int> > loadLevel(const std::string& filename) {
     std::vector<std::vector<int> > levelData;
     std::ifstream file(filename);
@@ -37,7 +46,6 @@ std::vector<std::vector<int> > loadLevel(const std::string& filename) {
         std::cerr << "Pas possible d'ouvrir le fichier: " << filename << std::endl;
         return levelData;
     }
-
     while (getline(file, line)) {
         std::vector<int> row;
         for (char c : line) {
@@ -64,7 +72,7 @@ void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
     const int brickHeight = 20;
     const int padding = 5;
     const int startY = 50;
-    activeCountBrick = 0;
+    activeCountBrick = 0; // Réinitialise le compteur de briques actives
     int cols = levelData.empty() ? 0 : levelData[0].size();
     int brickWidth = (windowWidth - (cols + 1) * padding) / cols;
 
@@ -117,7 +125,7 @@ void Game::initBonus(){
     la fenêtre, le renderer, le paddle, la balle, et charge les briques.
 
 */
-Game::Game() : jeuTourne(false), gameStarted(false), brickOrH(false){
+Game::Game() : jeuTourne(false), gameStarted(false), isCounterPaused(false), brickOrH(false){
     // Initialiser Window et SDL avant d'initialiser Paddle
     win.init("Casse Brique");
     renderer = win.getRenderer(); 
@@ -126,26 +134,14 @@ Game::Game() : jeuTourne(false), gameStarted(false), brickOrH(false){
     // bonus(generateRandomNumber(20, 600), false, 10, MALUS, DECREASE_PADDLE, false)
     auto levelData = loadLevel("level/1.txt");
         if (levelData.empty()) {
-            std::cerr << "Echec de chargement de fichier" << std::endl;
-            return;  // Handle failure appropriately
+            std::cerr << "Le fichier est vide" << std::endl;
+            return; 
         }
     initBricks(levelData);
     initBricksH(levelData);
     initBonus();
 }
 
-/*
-    Fonction qui permet de passer au niveau suivant.
-    Construit le chemin du fichier de niveau en fonction du niveau actuel.
-    Incrémente le niveau actuel pour passer au niveau suivant.
-    @return Le chemin du fichier de niveau suivant.
-
-*/
-std::string Game::getNextLevelFilename() {
-    static int currentLevel = 1;  // Stocker le niveau actuel
-    currentLevel++;  // Incrémenter pour passer au prochain niveau
-    return "level/" + std::to_string(currentLevel) + ".txt";  // Construire le chemin du fichier de niveau
-}
 
 /*
     Fonction qui permet de réinitialiser l'état du jeu.
@@ -166,6 +162,23 @@ static Uint32 changeLevelCallback(Uint32 interval, void* param) {
     game->loadNextLevel();
     return 0;  // Arrêter le timer
 }
+
+static Uint32 countdownTimerCallback(Uint32 interval, void* param) {
+    Game* game = static_cast<Game*>(param);
+    if (game->isCounterPaused) {
+        return 0;  // Ne pas rappeler le timer si en pause
+    }
+    game->countdown--;
+    if (game->countdown > 0) {
+        return 1000;  // Continue à appeler le timer toutes les secondes
+    } else {
+        game->loadNextLevel();  // Charger le niveau suivant lorsque le compteur atteint 0
+        return 0;  // Arrêter le timer
+    }
+}
+
+
+
 /*
     Fonction qui permet de mettre à jour la logique du jeu.
     Vérifie si toutes les briques sont détruites pour passer au niveau suivant.
@@ -176,33 +189,92 @@ void Game::updateGameLogic() {
     // Vérifier les collisions
     // Vérifier si toutes les briques sont détruites
     if (activeCountBrick == 0 || activeCountBrickH == 0) {
+        countdown = 5;  // Commence le compteur à 3 secondes
         gameState=CHANGEMENT_NIVEAU;
-        SDL_AddTimer(3000,changeLevelCallback, this);
+        SDL_AddTimer(1000, countdownTimerCallback, this);  // Démarre le timer pour décompter chaque seconde
     }
 }
 
+/*
+    Fonction qui permet de charger le niveau suivant.
+    Charge le prochain niveau à partir d'un fichier texte.
+    Si tous les niveaux sont atteints, déclare la fin du jeu.
+
+*/
 void Game::loadNextLevel() {
-    std::string nextLevelFilename = getNextLevelFilename(); 
-    auto levelData = loadLevel(getNextLevelFilename());
+    niveauActuel++;
+    std::string nextLevelFilename = "level/"+std::to_string(niveauActuel)+".txt";
+   // std::string nextLevelFilename = getNextLevelFilename(); 
+    //auto levelData = loadLevel(getNextLevelFilename());
+    auto levelData = loadLevel(nextLevelFilename);
     if (!levelData.empty()) {
         initBricks(levelData);
         initBricksH(levelData);
         resetGameState();
         gameState = JEU_EN_COURS;
     } else {
-        gameState = GAME_OVER;
+        gameState = TOUS_NIVEAUX_ATTEINTS;
     }
+}
+
+/*
+    Fonction qui permet d'afficher le niveau actuel à l'écran.
+    Utilise la bibliothèque SDL_ttf pour afficher du texte à l'écran.
+
+*/
+void Game::displayLevel() {
+    TTF_Font* font = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
+    if (!font) {
+        std::cerr << "Erreur lors du chargement de la police : " << TTF_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Color textColor = {255, 255, 255};  // Blanc
+    std::string levelText = "Niveau: " + std::to_string(niveauActuel);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, levelText.c_str(), textColor);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    int text_width = 0, text_height = 0;
+    SDL_QueryTexture(texture, NULL, NULL, &text_width, &text_height);
+    SDL_Rect renderQuad = {win.getWinWidth() - text_width - 10, 10, text_width, text_height};
+
+    SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
 }
 
 
 /*
+    Fonction qui permet d'afficher le compte à rebours pour le prochain niveau.
+    Utilise la bibliothèque SDL_ttf pour afficher du texte à l'écran.
+*/
+void Game::displayNextLevelCountdown() {
+    if (gameState != CHANGEMENT_NIVEAU) return; // Assurez-vous que le jeu est dans le bon état
 
+    TTF_Font* font = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
+    SDL_Color textColor = {255, 255, 255}; // Blanc
+    std::string countdownText = "Starting in: " + std::to_string(countdown);
+    SDL_Surface* surface = TTF_RenderText_Solid(font, countdownText.c_str(), textColor);
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+
+    int textWidth, textHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &textWidth, &textHeight);
+    SDL_Rect renderQuad = { (win.getWinWidth() - textWidth) / 2, (win.getWinHeight() - textHeight) / 2, textWidth, textHeight };
+
+    SDL_RenderCopy(renderer, texture, NULL, &renderQuad);
+    SDL_DestroyTexture(texture);
+    TTF_CloseFont(font);
+}
+
+
+/*
     Destructeur de la classe Game. Nettoie les ressources en supprimant
     le paddle et la balle et en fermant SDL proprement.
 */
 Game::~Game() {
-    // delete paddle; // Libérer la mémoire allouée au Paddle
-    // delete ball; // Libérer la mémoire allouée à la balle
+   SDL_DestroyRenderer(renderer);   
 }
 
 
@@ -294,7 +366,6 @@ void Game::run() {
     quitMessageRect.x = (win.getWinWidth() - quitMessageRect.w) / 2;
     quitMessageRect.y = (win.getWinHeight() - quitMessageRect.h) / 2 + 40;
 
-
     // Afficher un message pour changer de niveau
     SDL_Surface* nextLevelSurface = TTF_RenderText_Solid(font, "Next Level", textColor);
     SDL_Texture* nextLeveltexture = SDL_CreateTextureFromSurface(renderer, nextLevelSurface);
@@ -302,6 +373,20 @@ void Game::run() {
     nextLevelReact.x = (win.getWinWidth() - nextLevelReact.w) / 2;
     nextLevelReact.y = (win.getWinHeight() - nextLevelReact.h) / 2 - 80;
 
+    // Afficher messages niveaux atteint
+    SDL_Surface* allLevelsCompleteSurface = TTF_RenderText_Solid(font, "Tous les niveaux ont ete atteints!", textColor);
+    SDL_Texture* allLevelsCompleteTexture = SDL_CreateTextureFromSurface(renderer, allLevelsCompleteSurface);
+    SDL_Rect allLevelsCompleteRect = {0, 0, 300, 300};
+    allLevelsCompleteRect.x = (win.getWinWidth() - allLevelsCompleteRect.w) / 2;
+    allLevelsCompleteRect.y = (win.getWinHeight() - allLevelsCompleteRect.h) / 2 - 80;
+   
+    // Afficher message de pause
+    SDL_Surface* pauseMessage = TTF_RenderText_Solid(font, "Appuyez sur entree pour mettre pause", messageColor);
+    SDL_Texture* pauseTexture = SDL_CreateTextureFromSurface(renderer, pauseMessage);
+    SDL_Rect pauseMessageReact = {0, 0, 400, 50};
+    pauseMessageReact.x = (win.getWinWidth() - pauseMessageReact.w) / 2;
+    pauseMessageReact.y = (win.getWinHeight() - pauseMessageReact.h) / 2 + 40;
+   
 
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
     SDL_Rect destRectHeart;
@@ -346,15 +431,26 @@ void Game::run() {
                             }
 
                         break;
-                        case SDLK_k:
+                        case SDLK_h:
 
                             if (gameState == MENU) {
-                                std::cout << "MENU" << std::endl;
                                 brickOrH = true;
                                 gameState = JEU_EN_COURS;
                             }
 
                         break;
+                        case SDLK_RETURN:
+                            if (gameState == CHANGEMENT_NIVEAU) {
+                                isCounterPaused = !isCounterPaused;  // Bascule l'état de pause
+                                if (isCounterPaused) {
+                                    // Supprimer le timer si en pause
+                                    SDL_RemoveTimer(countdown);
+                                } else {
+                                    // Recréer le timer si reprise
+                                    countdown = SDL_AddTimer(1000, countdownTimerCallback, this);
+                                }
+                            }
+                            break;
                     }
                     break;
                 case SDL_MOUSEMOTION:
@@ -386,6 +482,8 @@ void Game::run() {
 
             case JEU_EN_COURS:
 
+                displayLevel();
+
                 if (brickOrH == true) {
                     for (auto& brickH : bricksH) {
                         brickH.render({255, 255, 255, 255}, renderer);
@@ -399,23 +497,24 @@ void Game::run() {
                     }
                 }else {
                 
-                    //Dessiner les bricks active
-                    for (auto& brick : bricks) {
-                        if (brick.isActive()) {
-                            brick.render(renderer);
+                //Dessiner les bricks active
+                for (auto& brick : bricks) {
+                    if (brick.isActive()) {
+                        brick.render(renderer);
                         }
-
-                        // Boucle sur chaque brique pour vérifier si une collision avec la balle a lieu.
+                        // Vérifiez la collision de la balle avec chaque brique active
                         for (auto& brick : bricks) {
-                            if (brick.isActive() && brick.checkCollision(ballRect)) {
-                                // Réagir à la collision
-                                ball->reverseYVelocity();  
-                                //brick.isActive();
-                                activeCountBrick--;
+                            if (brick.isActive()) {
+                                SDL_Rect ballRect = ball->getRect();
+                                if (brick.checkCollision(ballRect)) {
+                                    ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                                    if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
+                                        activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
+                                    }
+                                }
                             }
                         }
-                    }
-
+                }
                 }
 
 
@@ -427,9 +526,12 @@ void Game::run() {
                 //Permet la collision entre la balle et les briques
                 ballRect=ball-> getRect();
 
+
+              
+
                 //Fonction qui permet de mettre à jour quand on passe au prochain niveau
                 updateGameLogic();
-                //loadNextLevel();
+               
                 
                 SDL_Rect newPaddleSize;
 
@@ -541,7 +643,15 @@ void Game::run() {
             //break;
 
             case CHANGEMENT_NIVEAU:
+                SDL_RenderCopy(renderer, pauseTexture, NULL, &pauseMessageReact);
                 SDL_RenderCopy(renderer, nextLeveltexture, nullptr, &nextLevelReact);
+                displayNextLevelCountdown(); // Cette fonction sera appelée chaque seconde grâce au timer
+                SDL_RenderPresent(renderer);
+                break;
+
+
+            case TOUS_NIVEAUX_ATTEINTS:
+                SDL_RenderCopy(renderer, allLevelsCompleteTexture, nullptr, &allLevelsCompleteRect);
                 SDL_RenderPresent(renderer);
                 break;
         }

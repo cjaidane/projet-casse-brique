@@ -19,8 +19,25 @@ Brick::Brick(int x, int y, int w, int h, int resistance)
 
 */
 void Brick::render(SDL_Renderer* renderer) const {
-    if (!active) return;
-    SDL_SetRenderDrawColor(renderer, 255, 255, 180, 255);  // Example: Hot Pink for visibility
+    if (!active) return;  // Ne rien faire si la brique n'est pas active.
+
+    // Choisissez une couleur basée sur la résistance de la brique.
+    switch(resistance) {
+        case 1:
+            SDL_SetRenderDrawColor(renderer, 255, 105, 180, 255); // Hot Pink pour les briques avec une résistance de 1.
+            break;
+        case 2:
+            SDL_SetRenderDrawColor(renderer, 255, 165, 0, 255);   // Orange pour les briques avec une résistance de 2.
+            break;
+        case 3:
+            SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255);   // Forest Green pour les briques avec une résistance de 3.
+            break;
+        default:
+            SDL_SetRenderDrawColor(renderer, 64, 224, 208, 255);  // Turquoise pour les briques avec une résistance supérieure à 3.
+            break;
+    }
+
+    // Dessinez la brique.
     SDL_RenderFillRect(renderer, &rect);
 }
 
@@ -54,17 +71,17 @@ void Brick::render(SDL_Renderer* renderer) const {
 */
 bool Brick::checkCollision(const SDL_Rect& ballRect) {
     if (!active) return false;  // Si la brique n'est pas active, ne vérifiez pas les collisions.
-    // Créez un SDL_Rect pour la brique.
+
     SDL_Rect brickRect = {rect.x, rect.y, rect.w, rect.h};
-    // Utilisez SDL_HasIntersection pour vérifier si la balle intersecte la brique.
     if (SDL_HasIntersection(&ballRect, &brickRect)) {
-        resistance--;  // Décrémentez la résistance de la brique.
-        if (resistance <= 0) {
+        if (resistance > 0) {
+            resistance--;  // Décrémentez la résistance de la brique.
+        }
+        if (resistance == 0) {
             active = false;  // Désactivez la brique si sa résistance atteint zéro.
         }
-        return true;  // Retournez vrai car il y a eu une collision.
+        return true;  // Retournez vrai pour indiquer une collision.
     }
-
     return false;  // Retournez faux si aucune collision n'est détectée.
 }
 
