@@ -521,7 +521,7 @@ void Game::run() {
                 if (brickOrH == true) {
                     for (auto& brickH : bricksH) {
                         if (brickH.isActive() ) {
-                           brickH.render({255, 255, 255, 255}, renderer);
+                           brickH.render( renderer);
                         }
                     }
                     for(auto& brickH : bricksH){

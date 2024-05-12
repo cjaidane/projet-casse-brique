@@ -49,8 +49,24 @@ BrickHexagone::BrickHexagone(int resistance, int q, int r, int s)
     @param renderer Le renderer SDL utilisé pour dessiner la brique.
 
 */
-void BrickHexagone::render(SDL_Color colH, SDL_Renderer* renderer) const {
+void BrickHexagone::render( SDL_Renderer* renderer) const {
     if (!active) return;
+     // Définir la couleur en fonction de la résistance
+    SDL_Color colH;
+    switch(resistance) {
+        case 1:
+            colH = {255, 105, 180, 255}; // Hot Pink pour les briques avec une résistance de 1.
+            break;
+        case 2:
+            colH = {255, 165, 0, 255};   // Orange pour les briques avec une résistance de 2.
+            break;
+        case 3:
+            colH = {34, 139, 34, 255};   // Forest Green pour les briques avec une résistance de 3.
+            break;
+        default:
+            colH = {64, 224, 208, 255};  // Turquoise pour les briques avec une résistance supérieure.
+            break;
+    }
     // SDL_SetRenderDrawColor(renderer, 255, 255, 180, 255);  // Example: Hot Pink for visibility
     // SDL_RenderFillRect(renderer, &rect);
     // SDL_Point points[6];
@@ -67,6 +83,13 @@ void BrickHexagone::render(SDL_Color colH, SDL_Renderer* renderer) const {
     for (int i = 0; i < 6; i++) {
         SDL_RenderDrawLine(renderer, corners.at(i%6).x, corners.at(i%6).y, corners.at((i+1)%6).x, corners.at((i+1)%6).y);
     }
+
+    // // Dessiner les bords de l'hexagone
+    // for (int i = 0; i < 6; i++) {
+    //     SDL_RenderDrawLine(renderer,
+    //         corners[i%6].x, corners[i%6].y,
+    //         corners[(i+1)%6].x, corners[(i+1)%6].y);
+    // }
 
     SDL_Vertex vertex_1 = {corners.at(0), colH, {1, 1}};
     SDL_Vertex vertex_2 = {corners.at(1), colH, {1, 1}};
@@ -170,8 +193,10 @@ bool BrickHexagone::checkCollision(const SDL_Rect& ballRect) {
         // SDL_IntersectRectAndLine(&ballRect, &xStart, &yStart, &xEnd, &yEnd)
 
         if (SDL_IntersectRectAndLine(&ballRect, &xStart, &yStart, &xEnd, &yEnd)) {
-            resistance--;  // Décrémentez la résistance de la brique.
-            if (resistance <= 0) {
+            if(resistance > 0){
+                resistance--;  // Décrémentez la résistance de la brique.
+            }
+            if (resistance == 0) {
                 active = false;  // Désactivez la brique si sa résistance atteint zéro.
             }
             return true;  // Retournez vrai car il y a eu une collision.

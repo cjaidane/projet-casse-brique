@@ -66,7 +66,7 @@ struct Layout {
 class BrickHexagone {
 public:
     BrickHexagone(int resistance, int q, int r, int s);
-    void render(SDL_Color colH, SDL_Renderer* renderer) const;
+    void render(SDL_Renderer* renderer) const;
     bool checkCollision(const SDL_Rect& ballRect);
     bool isActive() const;
   
