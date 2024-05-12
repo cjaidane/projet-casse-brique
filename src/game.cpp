@@ -409,9 +409,13 @@ void Game::run() {
     pauseMessageReact.y = (win.getWinHeight() - pauseMessageReact.h) / 2 + 40;
     
     //Afficher message pour hexagone
-    SDL_Surface* hexagoneMessage = TTF_RenderText_Solid(font, "Appuyez sur H pour activer les hexagones", messageColor);
+    TTF_Font* font_hexagone = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
+    SDL_Surface* hexagoneMessage = TTF_RenderText_Solid(font_hexagone, "Appuyez sur H pour activer les hexagones", {255,255,255});
     SDL_Texture* hexagoneTexture = SDL_CreateTextureFromSurface(renderer, hexagoneMessage);
-    SDL_Rect hexagoneMessageReact = {0, 0, 400, 50};
+    SDL_Rect hexagoneMessageReact = {0, 0, 300, 30};
+    hexagoneMessageReact.x = (win.getWinWidth() - hexagoneMessageReact.w) / 2;
+    hexagoneMessageReact.y = (win.getWinHeight() - hexagoneMessageReact.h) / 2 + 100;
+
     SDL_Texture* heartTexture = loadTexture(renderer, "./assets/Hearts/PNG/basic/heart.png");
     SDL_Rect destRectHeart;
 
@@ -500,7 +504,7 @@ void Game::run() {
             case MENU:
                 // Affichage du texte
                 SDL_RenderCopy(renderer, gameNameTexture, nullptr, &gameNameRect);
-
+                SDL_RenderCopy(renderer,hexagoneTexture, nullptr, &hexagoneMessageReact);
                 if (showStartMessageBlink) {
                 
                     SDL_RenderCopy(renderer, startMessageTexture, nullptr, &startMessageRect);
