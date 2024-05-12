@@ -78,3 +78,14 @@ bool BonusMalus::getUsed(){
 void BonusMalus::setUsed(bool us){
     this->used = us;
 }   
+
+void BonusMalus::activateMultiball(std::vector<std::unique_ptr<Ball> >& balls, SDL_Renderer* renderer) {
+    auto newBall = std::make_unique<Ball>(center.x, center.y, 10); // Utilisez la position du bonus pour démarrer la nouvelle balle
+    newBall->setVel(velX, -velY); // Inversez la vitesse Y pour démarrer la balle vers le haut
+    balls.push_back(std::move(newBall));
+    //used = true; // Marquez le bonus comme utilisé
+    //active = false; // Désactivez le bonus
+}
+
+
+

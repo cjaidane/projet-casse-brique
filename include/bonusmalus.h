@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include "window.h"
 #include "ball.h"
+#include <vector>
+#include <memory>
 
 enum Bonus{
     MALUS,
@@ -34,9 +36,10 @@ public:
     void setActive(bool act);
     Bonus getBonusType();
     Malus getMalusType();
+    void activateMultiball(std::vector<std::unique_ptr<Ball> >& balls, SDL_Renderer* renderer);
+   
 
 private:
-    
     SDL_Point center;
     int radius;
     int velX, velY;
@@ -47,7 +50,7 @@ private:
     bool activationBonus;
     // Pour savoir si le bonus a ete utilise et ne pas le reutiliser
     bool used;
-
+    
     Bonus bon;
     Malus mal;
 

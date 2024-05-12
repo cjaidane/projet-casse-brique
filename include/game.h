@@ -47,7 +47,7 @@ private:
     void resetGameState();
     void displayNextLevelCountdown();
     void displayLevel();
-    void activateMultiball();
+    
     enum GameState  {
     	MENU,
         JEU_EN_COURS,

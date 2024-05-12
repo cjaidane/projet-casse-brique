@@ -91,7 +91,6 @@ void Game::initBricks(const std::vector<std::vector<int> >& levelData) {
     }
 }
 
-
 void Game::initBricksH(const std::vector<std::vector<int> >& levelData) {
     const int windowWidth = win.getWinWidth();
     activeCountBrickH = 0;
@@ -316,14 +315,14 @@ SDL_Texture* loadTexture(SDL_Renderer* renderer, const char* imagePath) {
     return texture;
 }
 
-void Game::activateMultiball() {
-    if (!balls.empty()) {  // Vérifiez s'il y a déjà des balles pour éviter les erreurs.
-        auto newBall = std::make_unique<Ball>(*balls.front());  // Utiliser la première balle comme modèle
-        // Vous pouvez ajuster la vélocité pour différencier légèrement la nouvelle balle.
-        newBall->setVel(newBall->getVelX()+2 , newBall->getVelY());  // Modifier légèrement la vélocité
-        balls.push_back(std::move(newBall));
-    }
-}
+// void Game::activateMultiball() {
+//     if (!balls.empty()) {  // Vérifiez s'il y a déjà des balles pour éviter les erreurs.
+//         auto newBall = std::make_unique<Ball>(*balls.front());  // Utiliser la première balle comme modèle
+//         // Vous pouvez ajuster la vélocité pour différencier légèrement la nouvelle balle.
+//         newBall->setVel(newBall->getVelX()+2 , newBall->getVelY());  // Modifier légèrement la vélocité
+//         balls.push_back(std::move(newBall));
+//     }
+// }
 
 /*
     Boucle principale du jeu. Gère les événements d'entrée, met à jour les éléments du jeu,
@@ -680,13 +679,13 @@ void Game::run() {
                                // ball->adjustSpeed(1);
                                 }
                                 break;
+                            case MULTIBALL:
+                                    bonus.activateMultiball(balls, renderer);
+                                    bonus.setUsed(true);
+                                    bonus.setActivationBonus(false);
+                                break;
                             default:
                                 //Prendre en compte si BONUS et autre
-                                break;
-                            case MULTIBALL:
-                                activateMultiball();
-                                bonus.setUsed(true);
-                                bonus.setActivationBonus(false);
                                 break;
                                 
                         }
