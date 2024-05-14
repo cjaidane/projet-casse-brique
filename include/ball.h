@@ -16,6 +16,7 @@ public:
     void reset(int paddleX, int paddleY, int paddleWidth);
     // Pour inverser la vitesse verticale de la balle
     void reverseYVelocity();
+    void reverseXVelocity();
     SDL_Rect getRect() const;
 
     void setVel(int velX, int velY);

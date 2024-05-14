@@ -2,14 +2,16 @@
 #define BRICK_H
 
 #include <SDL2/SDL.h>
+#include <memory>
 #include <vector>
+#include "ball.h"
 
 
 class Brick {
 public:
     Brick(int x, int y, int w, int h, int resistance);
     void render(SDL_Renderer* renderer) const;
-    bool checkCollision(const SDL_Rect& ballRect);
+    bool checkCollision(std::unique_ptr<Ball>& ball);
     bool isActive() const;
   
 

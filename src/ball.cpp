@@ -91,6 +91,11 @@ void Ball::reverseYVelocity() {
     velY = -velY;  // Inverser la vitesse verticale
 }
 
+
+void Ball::reverseXVelocity() {
+    velX = -velX;  // Inverser la vitesse horizontale
+}
+
 /*
     Réinitialise la position de la balle au-dessus du paddle.
 

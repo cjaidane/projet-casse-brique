@@ -561,8 +561,8 @@ void Game::run() {
                         if (brick.isActive()) {
                             for(auto& ball : balls){
                                 SDL_Rect ballRect = ball->getRect();
-                                if (brick.checkCollision(ballRect)) {
-                                    ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
+                                if (brick.checkCollision(ball)) {
+                                    // ball->reverseYVelocity();  // Inverser la vélocité de la balle après collision.
                                     if (!brick.isActive()) {  // Vérifiez si la brique est devenue inactive après cette collision.
                                         activeCountBrick--;  // Décrémentez seulement si la brique est désormais inactive.
                                     }

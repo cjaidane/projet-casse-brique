@@ -1,4 +1,8 @@
 #include "../include/brick.h"
+#include <SDL2/SDL_rect.h>
+#include <iostream>
+#include <memory>
+#include <ostream>
 
 
 /*Constructeur pour la classe Brick.
@@ -69,11 +73,52 @@ void Brick::render(SDL_Renderer* renderer) const {
 
     @param ballRect Le rectangle représentant la balle pour vérifier la collision.
 */
-bool Brick::checkCollision(const SDL_Rect& ballRect) {
+bool Brick::checkCollision(std::unique_ptr<Ball>& ball) {
     if (!active) return false;  // Si la brique n'est pas active, ne vérifiez pas les collisions.
+    int top = rect.y;
+    int bottom = rect.y + rect.h;
+    int left = rect.x;
+    int right = rect.x + rect.w;
+
+    bool touch = false;
+    int botleftx = rect.x;
+    int botlefty = rect.y + rect.h;
+    int botrightx = rect.x + rect.w;
+    int botrighty = rect.y + rect.h;
+
+    int topleftx = rect.x;
+    int toplefty = rect.y;
+    int toprightx = rect.x + rect.w;
+    int toprighty = rect.y + rect.h;
 
     SDL_Rect brickRect = {rect.x, rect.y, rect.w, rect.h};
+    SDL_Rect const &ballRect = ball->getRect();
+
     if (SDL_HasIntersection(&ballRect, &brickRect)) {
+        if (SDL_IntersectRectAndLine(&ballRect, &topleftx, &toplefty, &botleftx, &botlefty) || SDL_IntersectRectAndLine(&ballRect, &toprightx, &toprighty, &botrightx, &botrighty)) {
+            // std::cout << "Intersect cotes" << std::endl; 
+            ball->reverseXVelocity();
+            touch = true;
+        }
+
+        if(!touch && (SDL_IntersectRectAndLine(&ballRect, &botleftx, &botlefty, &botrightx, &botrighty) || SDL_IntersectRectAndLine(&ballRect, &topleftx, &toplefty, &toprightx, &toprighty))){
+            // std::cout << "Intersect haut/bas" << std::endl; 
+            ball->reverseYVelocity();
+
+            touch = true;
+        }    }
+
+    if (SDL_HasIntersection(&ballRect, &brickRect)) {
+        // Vérifiez la collision avec les côtés de la brique
+        if (ballRect.x <= right && ballRect.x >= left) {
+            // Ajustez la vitesse de la balle en fonction du côté de la brique touché
+            
+            // ball->reverseXVelocity();
+        } else if (ballRect.x + ballRect.w >= left && ballRect.x + ballRect.w <= right) {
+            // Ajustez la vitesse de la balle en fonction du côté de la brique touché
+            // ball->reverseYVelocity();
+        }
+
         if (resistance > 0) {
             resistance--;  // Décrémentez la résistance de la brique.
         }
