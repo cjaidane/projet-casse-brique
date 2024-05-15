@@ -409,8 +409,7 @@ void Game::run() {
     pauseMessageReact.y = (win.getWinHeight() - pauseMessageReact.h) / 2 + 40;
     
     //Afficher message pour hexagone
-    TTF_Font* font_hexagone = TTF_OpenFont("./fonts/Roboto-Medium.ttf", 24);
-    SDL_Surface* hexagoneMessage = TTF_RenderText_Solid(font_hexagone, "Appuyez sur H pour activer les hexagones", {255,255,255});
+    SDL_Surface* hexagoneMessage = TTF_RenderText_Solid(font, "Appuyez sur H pour activer les hexagones", messageColor);
     SDL_Texture* hexagoneTexture = SDL_CreateTextureFromSurface(renderer, hexagoneMessage);
     SDL_Rect hexagoneMessageReact = {0, 0, 300, 30};
     hexagoneMessageReact.x = (win.getWinWidth() - hexagoneMessageReact.w) / 2;
